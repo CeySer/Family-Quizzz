@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avatar Creator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container" id="avatar-screen">
+    <div class="header-bar">
+        <div id="avatar-timer">⏱️ Zeit übrig: <span id="avatar-time-count">45</span>s</div>
+        <div id="player-coin-display">🪙 <span id="current-coins">0</span> Coins</div>
+    </div>
+    
+    <div class="avatar-creator-layout">
+        <div class="avatar-preview-box">
+            <h2 id="creator-title">Dein Avatar 🎨</h2>
+            <div class="avatar-display">
+                <div class="avatar-base" id="char-base">🧑</div>
+                <div class="avatar-item" id="char-hat"></div>
+                <div class="avatar-item" id="char-glasses"></div>
+            </div>
+            <button id="save-avatar-btn" onclick="saveAndGoToMenu()">Fertig & zum Menü ➔</button>
+        </div>
+
+        <div class="avatar-options-box">
+            <div class="shop-tabs">
+                <button class="tab-btn active" id="tab-base" onclick="switchShopTab('base')">Körper</button>
+                <button class="tab-btn" id="tab-hats" onclick="switchShopTab('hats')">Hüte (Shop)</button>
+                <button class="tab-btn" id="tab-glasses" onclick="switchShopTab('glasses')">Brillen (Shop)</button>
+            </div>
+
+            <div class="tab-content" id="content-base">
+                <h3>Wähle dein Gesicht:</h3>
+                <div class="shop-grid">
+                    <button class="shop-item" onclick="selectBase('🧑')">🧑 Junge</button>
+                    <button class="shop-item" onclick="selectBase('👧')">👧 Mädchen</button>
+                    <button class="shop-item" onclick="selectBase('👽')">👽 Alien</button>
+                    <button class="shop-item" onclick="selectBase('🤖')">🤖 Roboter</button>
+                    <button class="shop-item" onclick="selectBase('🦁')">🦁 Löwe</button>
+                </div>
+            </div>
+
+            <div class="tab-content" id="content-hats" style="display: none;">
+                <h3>Hüte freischalten:</h3>
+                <div class="shop-grid" id="hats-shop-grid"></div>
+            </div>
+
+            <div class="tab-content" id="content-glasses" style="display: none;">
+                <h3>Brillen freischalten:</h3>
+                <div class="shop-grid" id="glasses-shop-grid"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const shopHats = [
+        { id: "cap", label: "Basecap 🧢", price: 30, emoji: "🧢" },
+        { id: "wizard", label: "Magierhut 🧙", price: 80, emoji: "🧙" },
+        { id: "crown", label: "Krone 👑", price: 150, emoji: "👑" },
+        { id: "cowboy", label: "Cowboy 🤠", price: 50, emoji: "🤠" }
+    ];
+    const shopGlasses = [
+        { id: "sun", label: "Sonnenbrille 😎", price: 40, emoji: "🕶️" },
+        { id: "monocle", label: "Monokel 🧐", price: 70, emoji: "🧐" },
+        { id: "stars", label: "Sternenbrille ⭐", price: 120, emoji: "⭐" }
+    ];
+
+    let playerName = sessionStorage.getItem("current_quiz_player");
+    let currentPlayer = JSON.parse(localStorage.getItem("quiz_player_" + playerName.toLowerCase()));
+    let timerInterval;
+    let timeLeft = 45;
+    let audioCtx;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playTone(freq, type, duration, startTimeOffset = 0) {
+        initAudio();
+        setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }, startTimeOffset);
+    }
+
+    function playClickSound() { playTone(600, 'sine', 0.05, 0); }
+    function playTickSound() { playTone(800, 'triangle', 0.03, 0); }
+    function playCorrectSound() { playTone(523.25, 'sine', 0.1, 0); playTone(659.25, 'sine', 0.15, 80); }
+    function playRararaSound() { let now = 0; for(let i = 0; i < 9; i++) { playTone(180 - (i * 5), 'sawtooth', 0.06, now); now += 70; } }
+
+    function initCreator() {
+        document.getElementById("creator-title").innerText = `${currentPlayer.name}s Avatar 🎨`;
+        document.getElementById("current-coins").innerText = currentPlayer.coins;
+        updatePreview();
+        renderShop();
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById("avatar-time-count").innerText = timeLeft;
+            if (timeLeft <= 5 && timeLeft > 0) { playTickSound(); }
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                saveAndGoToMenu();
+            }
+        }, 1000);
+    }
+
+    function updatePreview() {
+        document.getElementById("char-base").innerText = currentPlayer.avatar.base;
+        document.getElementById("char-hat").innerText = currentPlayer.avatar.hat;
+        document.getElementById("char-glasses").innerText = currentPlayer.avatar.glasses;
+    }
+
+    function selectBase(emoji) { playClickSound(); currentPlayer.avatar.base = emoji; updatePreview(); }
+    function equipItem(type, emoji) { playClickSound(); if(type==='hat') currentPlayer.avatar.hat = emoji; else currentPlayer.avatar.glasses = emoji; updatePreview(); }
+
+    function switchShopTab(tab) {
+        playClickSound();
+        document.getElementById("tab-base").classList.remove("active");
+        document.getElementById("tab-hats").classList.remove("active");
+        document.getElementById("tab-glasses").classList.remove("active");
+        document.getElementById("content-base").style.display = "none";
+        document.getElementById("content-hats").style.display = "none";
+        document.getElementById("content-glasses").style.display = "none";
+        document.getElementById("tab-" + tab).classList.add("active");
+        document.getElementById("content-" + tab).style.display = "block";
+    }
+
+    function renderShop() {
+        const hatsGrid = document.getElementById("hats-shop-grid");
+        const glassesGrid = document.getElementById("glasses-shop-grid");
+        hatsGrid.innerHTML = `<button class="shop-item" onclick="equipItem('hat', '')">❌ Kein Hut</button>`;
+        glassesGrid.innerHTML = `<button class="shop-item" onclick="equipItem('glasses', '')">❌ Keine Brille</button>`;
+
+        shopHats.forEach(item => {
+            const isUnlocked = currentPlayer.unlockedHats.includes(item.id);
+            const btn = document.createElement("button");
+            btn.className = `shop-item ${isUnlocked ? 'unlocked' : 'locked'}`;
+            btn.innerHTML = isUnlocked ? `${item.label}<br><span style="color:#26890c;font-size:0.8rem;">Freigeschaltet</span>` : `${item.label}<br><span style="color:#ffd700;font-size:0.8rem;">🪙 ${item.price}</span>`;
+            btn.onclick = () => isUnlocked ? equipItem('hat', item.emoji) : buyItem('hat', item);
+            hatsGrid.appendChild(btn);
+        });
+
+        shopGlasses.forEach(item => {
+            const isUnlocked = currentPlayer.unlockedGlasses.includes(item.id);
+            const btn = document.createElement("button");
+            btn.className = `shop-item ${isUnlocked ? 'unlocked' : 'locked'}`;
+            btn.innerHTML = isUnlocked ? `${item.label}<br><span style="color:#26890c;font-size:0.8rem;">Freigeschaltet</span>` : `${item.label}<br><span style="color:#ffd700;font-size:0.8rem;">🪙 ${item.price}</span>`;
+            btn.onclick = () => isUnlocked ? equipItem('glasses', item.emoji) : buyItem('glasses', item);
+            glassesGrid.appendChild(btn);
+        });
+    }
+
+    function buyItem(type, item) {
+        if (currentPlayer.coins >= item.price) {
+            currentPlayer.coins -= item.price;
+            playCorrectSound();
+            if(type==='hat') { currentPlayer.unlockedHats.push(item.id); currentPlayer.avatar.hat = item.emoji; }
+            else { currentPlayer.unlockedGlasses.push(item.id); currentPlayer.avatar.glasses = item.emoji; }
+            document.getElementById("current-coins").innerText = currentPlayer.coins;
+            updatePreview(); renderShop();
+            localStorage.setItem("quiz_player_" + playerName.toLowerCase(), JSON.stringify(currentPlayer));
+        } else { 
+            playRararaSound();
+            alert("Nicht genug Coins! Du brauchst mehr richtige Antworten im Quiz. 🪙"); 
+        }
+    }
+
+    function saveAndGoToMenu() {
+        clearInterval(timerInterval);
+        playClickSound();
+        localStorage.setItem("quiz_player_" + playerName.toLowerCase(), JSON.stringify(currentPlayer));
+        setTimeout(() => {
+            window.location.href = "menu.html";
+        }, 150);
+    }
+
+    window.onload = initCreator;
+</script>
+</body>
+</html>

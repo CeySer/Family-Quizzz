@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hauptmenü</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container" id="start-screen">
+    <div class="user-profile-header">
+        <div class="profile-avatar-mini" id="mini-avatar">🧑</div>
+        <div>
+            <span id="welcome-text" style="font-weight: bold; font-size: 1.4rem; color: #ff6b81;">Hallo!</span><br>
+            <span style="color: #ffd700; font-weight: bold;">🪙 <span id="menu-coins">0</span> Coins</span>
+        </div>
+        <button class="logout-btn" style="background-color:#1368ce; margin-left:10px;" onclick="goToAvatar()">Avatar Shop 🎨</button>
+        <button class="logout-btn" onclick="logout()">Abmelden 🔄</button>
+    </div>
+
+    <div class="setup-section">
+        <div class="setup-title">1. Was wollt ihr heute lernen? (Kategorien) 🎒</div>
+        <div class="option-group">
+            <button class="opt-btn cat-btn active" id="cat-sprachen" onclick="toggleCategory('sprachen')">🗣️ Sprachen</button>
+            <button class="opt-btn cat-btn active" id="cat-islam" onclick="toggleCategory('islam')">🕌 Islam</button>
+            <button class="opt-btn cat-btn active" id="cat-hauptstaedte" onclick="toggleCategory('hauptstaedte')">🗺️ Hauptstädte</button>
+            <button class="opt-btn cat-btn active" id="cat-filme" onclick="toggleCategory('filme')">🎬 Filme</button>
+            <button class="opt-btn cat-btn active" id="cat-buecher" onclick="toggleCategory('buecher')">📚 Kinderbücher</button>
+            
+            <button class="opt-btn cat-btn" style="border-color:#26890c;" id="cat-klasse2" onclick="toggleCategory('klasse2')">🏫 2. Klasse (Schule)</button>
+            <button class="opt-btn cat-btn" style="border-color:#26890c;" id="cat-klasse4" onclick="toggleCategory('klasse4')">🏫 4. Klasse (Schule)</button>
+            <button class="opt-btn cat-btn" style="border-color:#ffd700;" id="cat-kfz" onclick="toggleCategory('kfz')">🔧 KFZ Lernfeld 1-4</button>
+        </div>
+    </div>
+
+    <div class="setup-section">
+        <div class="setup-title">2. Wie viele Fragen?</div>
+        <div class="option-group">
+            <button class="opt-btn active" id="count-5" onclick="setQuestionCount(5)">5 Fragen</button>
+            <button class="opt-btn" id="count-10" onclick="setQuestionCount(10)">10 Fragen</button>
+            <button class="opt-btn" id="count-20" onclick="setQuestionCount(20)">20 Fragen</button>
+        </div>
+    </div>
+
+    <div class="setup-section">
+        <div class="setup-title">3. Countdown-Geschwindigkeit</div>
+        <div class="option-group">
+            <button class="opt-btn active" id="mode-20" onclick="setTimerMode(20)">Normal (20s)</button>
+            <button class="opt-btn" id="mode-5" onclick="setTimerMode(5)">⚡ Blitz (5s!)</button>
+        </div>
+    </div>
+
+    <button id="start-play-btn" onclick="startQuiz()">Spiel starten! 🚀</button>
+</div>
+
+<script>
+    let playerName = sessionStorage.getItem("current_quiz_player");
+    let currentPlayer = JSON.parse(localStorage.getItem("quiz_player_" + playerName.toLowerCase()));
+    
+    let selectedCategories = ["sprachen", "islam", "hauptstaedte", "filme", "buecher"];
+    let chosenCount = 5;
+    let chosenTimer = 20;
+    let audioCtx;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playTone(freq, type, duration, startTimeOffset = 0) {
+        initAudio();
+        setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }, startTimeOffset);
+    }
+
+    function playClickSound() { playTone(600, 'sine', 0.05, 0); }
+    function playStartGameSound() { playTone(440, 'sine', 0.1, 0); playTone(554, 'sine', 0.1, 100); playTone(659, 'sine', 0.1, 200); playTone(880, 'sine', 0.3, 300); }
+
+    function initMenu() {
+        document.getElementById("welcome-text").innerText = `Hallo, ${currentPlayer.name}!`;
+        document.getElementById("menu-coins").innerText = currentPlayer.coins;
+        
+        document.getElementById("mini-avatar").innerHTML = `
+            <span>${currentPlayer.avatar.base}</span>
+            <span style="position:absolute; top:-12px; left:0; width:100%; text-align:center; font-size:2rem;">${currentPlayer.avatar.hat}</span>
+            <span style="position:absolute; top:4px; left:0; width:100%; text-align:center; font-size:1.5rem;">${currentPlayer.avatar.glasses}</span>
+        `;
+    }
+
+    function toggleCategory(category) {
+        playClickSound();
+        const idx = selectedCategories.indexOf(category);
+        const btn = document.getElementById('cat-' + category);
+        if (idx > -1) {
+            if (selectedCategories.length > 1) { selectedCategories.splice(idx, 1); btn.classList.remove('active'); }
+        } else { selectedCategories.push(category); btn.classList.add('active'); }
+    }
+
+    function setQuestionCount(count) {
+        playClickSound();
+        chosenCount = count;
+        document.getElementById('count-5').classList.remove('active');
+        document.getElementById('count-10').classList.remove('active');
+        document.getElementById('count-20').classList.remove('active');
+        document.getElementById('count-' + count).classList.add('active');
+    }
+
+    function setTimerMode(seconds) {
+        playClickSound();
+        chosenTimer = seconds;
+        document.getElementById('mode-20').classList.remove('active');
+        document.getElementById('mode-5').classList.remove('active');
+        document.getElementById('mode-' + seconds).classList.add('active');
+    }
+
+    function startQuiz() {
+        playStartGameSound();
+        sessionStorage.setItem("quiz_settings", JSON.stringify({
+            categories: selectedCategories,
+            count: chosenCount,
+            timer: chosenTimer
+        }));
+        setTimeout(() => {
+            window.location.href = "quiz.html";
+        }, 400);
+    }
+
+    function goToAvatar() {
+        playClickSound();
+        setTimeout(() => { window.location.href = "avatar.html"; }, 100);
+    }
+
+    function logout() {
+        playClickSound();
+        setTimeout(() => { window.location.href = "index.html"; }, 100);
+    }
+
+    window.onload = initMenu;
+</script>
+</body>
+</html>

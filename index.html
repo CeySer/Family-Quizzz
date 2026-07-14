@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Özdemir Familien-Quiz - Login</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Spezifische Styles für die Profil-Auswahl (wie Netflix) */
+        .profile-container {
+            margin-bottom: 30px;
+            background-color: #16213e;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        
+        .profile-grid {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .profile-card {
+            background-color: #1a1a2e;
+            border: 3px solid #1368ce;
+            border-radius: 12px;
+            padding: 15px;
+            width: 110px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+        }
+
+        .profile-card:hover {
+            transform: scale(1.05);
+            border-color: #ff6b81;
+        }
+
+        .profile-avatar-box {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #16213e;
+            margin: 0 auto 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            border: 2px solid #e94560;
+        }
+
+        .profile-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .profile-coins {
+            font-size: 0.85rem;
+            color: #ffd700;
+            margin-top: 5px;
+        }
+
+        .divider {
+            margin: 25px 0;
+            color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #444;
+            margin: 0 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="login-screen">
+    <h1 style="color: white; font-size: 2.8rem; margin-top: 0;">Özdemir Familien-Quiz 🎮</h1>
+    
+    <!-- 1. BEREICH: BESTEHENDE PROFILE (Wird nur angezeigt, wenn Profile existieren) -->
+    <div class="profile-container" id="existing-profiles-box" style="display: none;">
+        <div class="setup-title" style="margin-bottom: 5px;">Wer spielt heute? 👤</div>
+        <p style="color: #aaa; font-size: 0.95rem; margin-bottom: 15px;">Tippe einfach auf dein Profil, um direkt loszulegen!</p>
+        <div class="profile-grid" id="profile-grid">
+            <!-- Profile werden hier dynamisch mit JS eingefügt -->
+        </div>
+    </div>
+
+    <div class="divider" id="profile-divider" style="display: none;">ODER</div>
+
+    <!-- 2. BEREICH: NEUER SPIELER ANMELDEN -->
+    <div class="setup-section">
+        <div class="setup-title" id="new-player-title">Neuen Spieler anmelden ✍️</div>
+        <p style="color: #aaa; margin-bottom: 20px;">Gib deinen echten Namen ein, um ein neues Profil zu erstellen.</p>
+        <input type="text" id="username-input" placeholder="Dein Name..." autocomplete="off">
+        <button id="login-btn" onclick="handleLogin()">Anmelden & Weiter 🚀</button>
+    </div>
+
+    <!-- QR-CODE BEREICH -->
+    <div class="qr-box" id="qr-box">
+        <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; color: #ff6b81;">
+            Auf dem Handy spielen? 📱
+        </div>
+        <p style="font-size: 0.9rem; color: #aaa; margin: 0 0 15px 0;">
+            Scanne einfach diesen Code mit deiner Kamera ab, um das Spiel auf deinem Smartphone zu öffnen!
+        </p>
+        <div class="qr-code-wrapper">
+            <img id="qr-code-img" src="" alt="Lade QR-Code...">
+        </div>
+    </div>
+</div>
+
+<script>
+    let audioCtx;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playTone(freq, type, duration) {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
+
+    // LISTE ALLER PROFILE LADEN UND ANZEIGEN
+    function loadExistingProfiles() {
+        // Liste aller Spielernamen holen
+        let playerNames = JSON.parse(localStorage.getItem("quiz_player_list") || "[]");
+        
+        if (playerNames.length > 0) {
+            document.getElementById("existing-profiles-box").style.display = "block";
+            document.getElementById("profile-divider").style.display = "flex";
+            document.getElementById("new-player-title").innerText = "Anderer Name / Neu registrieren 👤";
+            
+            const grid = document.getElementById("profile-grid");
+            grid.innerHTML = ""; // Leeren
+
+            playerNames.forEach(nameKey => {
+                let playerData = JSON.parse(localStorage.getItem("quiz_player_" + nameKey));
+                if (playerData) {
+                    // Karte erstellen
+                    const card = document.createElement("div");
+                    card.className = "profile-card";
+                    card.onclick = () => loginAs(playerData.name);
+
+                    card.innerHTML = `
+                        <div class="profile-avatar-box">
+                            <span>${playerData.avatar.base}</span>
+                            <span style="position:absolute; top:-10px; left:0; width:100%; text-align:center; font-size:1.6rem;">${playerData.avatar.hat || ''}</span>
+                            <span style="position:absolute; top:2px; left:0; width:100%; text-align:center; font-size:1.2rem;">${playerData.avatar.glasses || ''}</span>
+                        </div>
+                        <div class="profile-name">${playerData.name}</div>
+                        <div class="profile-coins">🪙 ${playerData.coins}</div>
+                    `;
+                    grid.appendChild(card);
+                }
+            });
+        }
+    }
+
+    // DIREKT-LOGIN BEI KLICK AUF PROFILKARTE
+    function loginAs(name) {
+        try { playTone(523, 'sine', 0.1); } catch(e) {}
+        sessionStorage.setItem("current_quiz_player", name);
+        setTimeout(() => {
+            // Da das Profil schon existiert, springen wir direkt ins Hauptmenü!
+            window.location.href = "menu.html";
+        }, 150);
+    }
+
+    // MANUELLES EINLOGGEN (FÜR NEUE NAMEN)
+    function handleLogin() {
+        const input = document.getElementById("username-input");
+        const name = input.value.trim();
+        if (!name) { alert("Bitte gib deinen Namen ein!"); return; }
+
+        try { playTone(440, 'sine', 0.1); } catch(e) {}
+
+        sessionStorage.setItem("current_quiz_player", name);
+
+        let nameKey = name.toLowerCase();
+        let savedData = localStorage.getItem("quiz_player_" + nameKey);
+        
+        // Wenn neu, im System anlegen und der Liste hinzufügen
+        if (!savedData) {
+            let newPlayer = {
+                name: name,
+                coins: 0,
+                avatar: { base: "🧑", hat: "", glasses: "" },
+                unlockedHats: [],
+                unlockedGlasses: []
+            };
+            localStorage.setItem("quiz_player_" + nameKey, JSON.stringify(newPlayer));
+
+            // Name in globale Liste eintragen
+            let playerList = JSON.parse(localStorage.getItem("quiz_player_list") || "[]");
+            if (!playerList.includes(nameKey)) {
+                playerList.push(nameKey);
+                localStorage.setItem("quiz_player_list", JSON.stringify(playerList));
+            }
+            
+            // Neue Spieler schicken wir zuerst in den Avatar-Editor
+            setTimeout(() => { window.location.href = "avatar.html"; }, 150);
+        } else {
+            // Wenn der Name doch schon existierte (z.B. auf einem anderen PC manuell eingetippt),
+            // fügen wir ihn zur Sicherheit auch der Liste hinzu und leiten ins Menü weiter.
+            let playerList = JSON.parse(localStorage.getItem("quiz_player_list") || "[]");
+            if (!playerList.includes(nameKey)) {
+                playerList.push(nameKey);
+                localStorage.setItem("quiz_player_list", JSON.stringify(playerList));
+            }
+            setTimeout(() => { window.location.href = "menu.html"; }, 150);
+        }
+    }
+
+    window.onload = function() {
+        loadExistingProfiles();
+
+        // Automatische QR-Code Generierung
+        const qrImg = document.getElementById("qr-code-img");
+        if (qrImg) {
+            const currentUrl = encodeURIComponent(window.location.href);
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${currentUrl}&color=1a1a2e&bgcolor=ffffff`;
+        }
+    }
+</script>
+</body>
+</html>

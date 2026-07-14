@@ -27,10 +27,15 @@
             <button class="opt-btn cat-btn active" id="cat-hauptstaedte" onclick="toggleCategory('hauptstaedte')">🗺️ Hauptstädte</button>
             <button class="opt-btn cat-btn active" id="cat-filme" onclick="toggleCategory('filme')">🎬 Filme</button>
             <button class="opt-btn cat-btn active" id="cat-buecher" onclick="toggleCategory('buecher')">📚 Kinderbücher</button>
-            
-            <button class="opt-btn cat-btn" style="border-color:#26890c;" id="cat-klasse2" onclick="toggleCategory('klasse2')">🏫 2. Klasse (Schule)</button>
-            <button class="opt-btn cat-btn" style="border-color:#26890c;" id="cat-klasse4" onclick="toggleCategory('klasse4')">🏫 4. Klasse (Schule)</button>
+            <button class="opt-btn cat-btn" style="border-color:#26890c;" id="cat-klasse2" onclick="toggleCategory('klasse2')">🏫 2. Klasse</button>
+            <button class="opt-btn cat-btn" style="border-color:#26890c;" id="cat-klasse4" onclick="toggleCategory('klasse4')">🏫 4. Klasse</button>
             <button class="opt-btn cat-btn" style="border-color:#ffd700;" id="cat-kfz" onclick="toggleCategory('kfz')">🔧 KFZ Lernfeld 1-4</button>
+            
+            <!-- DIE 4 NEUEN KATEGORIEN -->
+            <button class="opt-btn cat-btn" style="border-color:#ff6b81;" id="cat-politik" onclick="toggleCategory('politik')">🏛️ Politik</button>
+            <button class="opt-btn cat-btn" style="border-color:#ff6b81;" id="cat-fussball" onclick="toggleCategory('fussball')">⚽ Fußball</button>
+            <button class="opt-btn cat-btn" style="border-color:#ff6b81;" id="cat-mode" onclick="toggleCategory('mode')">👗 Mode</button>
+            <button class="opt-btn cat-btn" style="border-color:#ff6b81;" id="cat-erdkunde" onclick="toggleCategory('erdkunde')">🌍 Erdkunde</button>
         </div>
     </div>
 
@@ -46,7 +51,7 @@
     <div class="setup-section">
         <div class="setup-title">3. Countdown-Geschwindigkeit</div>
         <div class="option-group">
-            <button class="opt-btn active" id="mode-20" onclick="setTimerMode(20)">Normal (20s)</button>
+            <button class="opt-btn active" id="mode-30" onclick="setTimerMode(30)">Normal (30s)</button>
             <button class="opt-btn" id="mode-5" onclick="setTimerMode(5)">⚡ Blitz (5s!)</button>
         </div>
     </div>
@@ -60,16 +65,12 @@
     
     let selectedCategories = ["sprachen", "islam", "hauptstaedte", "filme", "buecher"];
     let chosenCount = 5;
-    let chosenTimer = 20;
+    let chosenTimer = 30; // Standard jetzt 30 Sekunden
     let audioCtx;
 
     function initAudio() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
+        if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        if (audioCtx.state === 'suspended') { audioCtx.resume(); }
     }
 
     function playTone(freq, type, duration, startTimeOffset = 0) {
@@ -120,7 +121,7 @@
     function setTimerMode(seconds) {
         playClickSound();
         chosenTimer = seconds;
-        document.getElementById('mode-20').classList.remove('active');
+        document.getElementById('mode-30').classList.remove('active');
         document.getElementById('mode-5').classList.remove('active');
         document.getElementById('mode-' + seconds).classList.add('active');
     }
@@ -132,20 +133,11 @@
             count: chosenCount,
             timer: chosenTimer
         }));
-        setTimeout(() => {
-            window.location.href = "quiz.html";
-        }, 400);
+        setTimeout(() => { window.location.href = "quiz.html"; }, 400);
     }
 
-    function goToAvatar() {
-        playClickSound();
-        setTimeout(() => { window.location.href = "avatar.html"; }, 100);
-    }
-
-    function logout() {
-        playClickSound();
-        setTimeout(() => { window.location.href = "index.html"; }, 100);
-    }
+    function goToAvatar() { playClickSound(); setTimeout(() => { window.location.href = "avatar.html"; }, 100); }
+    function logout() { playClickSound(); setTimeout(() => { window.location.href = "index.html"; }, 100); }
 
     window.onload = initMenu;
 </script>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,9 +12,9 @@
             background-color: #16213e;
             padding: 15px;
             border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         }
-        
+
         .profile-grid {
             display: flex;
             justify-content: center;
@@ -78,7 +79,9 @@
             font-weight: bold;
             font-size: 0.9rem;
         }
-        .divider::before, .divider::after {
+
+        .divider::before,
+        .divider::after {
             content: "";
             flex: 1;
             height: 1px;
@@ -87,77 +90,81 @@
         }
     </style>
 </head>
+
 <body>
 
-<div class="container" id="login-screen">
-    <h1 class="main-title">Özdemir Familien-Quiz 🎮</h1>
-    
-    <!-- BESTEHENDE PROFILE (Netflix-Stil) -->
-    <div class="profile-container" id="existing-profiles-box" style="display: none;">
-        <div class="setup-title" style="margin-bottom: 5px;">Wer spielt heute? 👤</div>
-        <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">Tippe auf dein Profil, um direkt loszulegen!</p>
-        <div class="profile-grid" id="profile-grid"></div>
-    </div>
+    <div class="container" id="login-screen">
+        <h1 class="main-title">Özdemir Familien-Quiz 🎮</h1>
 
-    <div class="divider" id="profile-divider" style="display: none;">ODER</div>
+        <!-- BESTEHENDE PROFILE (Netflix-Stil) -->
+        <div class="profile-container" id="existing-profiles-box" style="display: none;">
+            <div class="setup-title" style="margin-bottom: 5px;">Wer spielt heute? 👤</div>
+            <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">Tippe auf dein Profil, um direkt
+                loszulegen!</p>
+            <div class="profile-grid" id="profile-grid"></div>
+        </div>
 
-    <!-- NEUER SPIELER ANMELDEN -->
-    <div class="setup-section">
-        <div class="setup-title" id="new-player-title">Neuen Spieler anmelden ✍️</div>
-        <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">Gib deinen Namen ein, um ein neues Profil zu erstellen.</p>
-        <input type="text" id="username-input" placeholder="Dein Name..." autocomplete="off">
-        <button id="login-btn" onclick="handleLogin()">Anmelden & Weiter 🚀</button>
-    </div>
+        <div class="divider" id="profile-divider" style="display: none;">ODER</div>
 
-    <!-- QR-CODE BEREICH -->
-    <div class="qr-box" id="qr-box">
-        <div style="font-size: 1rem; font-weight: bold; margin-bottom: 5px; color: #ff6b81;">Auf dem Handy spielen? 📱</div>
-        <p style="font-size: 0.8rem; color: #aaa; margin: 0 0 10px 0;">Scanne den Code mit der Handykamera!</p>
-        <div class="qr-code-wrapper">
-            <img id="qr-code-img" src="" alt="Lade QR-Code...">
+        <!-- NEUER SPIELER ANMELDEN -->
+        <div class="setup-section">
+            <div class="setup-title" id="new-player-title">Neuen Spieler anmelden ✍️</div>
+            <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">Gib deinen Namen ein, um ein neues Profil
+                zu erstellen.</p>
+            <input type="text" id="username-input" placeholder="Dein Name..." autocomplete="off">
+            <button id="login-btn" onclick="handleLogin()">Anmelden & Weiter 🚀</button>
+        </div>
+
+        <!-- QR-CODE BEREICH -->
+        <div class="qr-box" id="qr-box">
+            <div style="font-size: 1rem; font-weight: bold; margin-bottom: 5px; color: #ff6b81;">Auf dem Handy spielen?
+                📱</div>
+            <p style="font-size: 0.8rem; color: #aaa; margin: 0 0 10px 0;">Scanne den Code mit der Handykamera!</p>
+            <div class="qr-code-wrapper">
+                <img id="qr-code-img" src="" alt="Lade QR-Code...">
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    let audioCtx;
+    <script>
+        let audioCtx;
 
-    function initAudio() {
-        if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-        if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-    }
+        function initAudio() {
+            if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+        }
 
-    function playTone(freq, type, duration) {
-        initAudio();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type; osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + duration);
-    }
+        function playTone(freq, type, duration) {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
 
-    function loadExistingProfiles() {
-        let playerNames = JSON.parse(localStorage.getItem("quiz_player_list") || "[]");
-        
-        if (playerNames.length > 0) {
-            document.getElementById("existing-profiles-box").style.display = "block";
-            document.getElementById("profile-divider").style.display = "flex";
-            document.getElementById("new-player-title").innerText = "Neues Profil erstellen 👤";
-            
-            const grid = document.getElementById("profile-grid");
-            grid.innerHTML = "";
+        function loadExistingProfiles() {
+            let playerNames = JSON.parse(localStorage.getItem("quiz_player_list") || "[]");
 
-            playerNames.forEach(nameKey => {
-                let playerData = JSON.parse(localStorage.getItem("quiz_player_" + nameKey));
-                if (playerData) {
-                    const card = document.createElement("div");
-                    card.className = "profile-card";
-                    card.onclick = () => loginAs(playerData.name);
+            if (playerNames.length > 0) {
+                document.getElementById("existing-profiles-box").style.display = "block";
+                document.getElementById("profile-divider").style.display = "flex";
+                document.getElementById("new-player-title").innerText = "Neues Profil erstellen 👤";
 
-                    // Ganzkörper-Vorschau in der Profilkarte
-                    card.innerHTML = `
+                const grid = document.getElementById("profile-grid");
+                grid.innerHTML = "";
+
+                playerNames.forEach(nameKey => {
+                    let playerData = JSON.parse(localStorage.getItem("quiz_player_" + nameKey));
+                    if (playerData) {
+                        const card = document.createElement("div");
+                        card.className = "profile-card";
+                        card.onclick = () => loginAs(playerData.name);
+
+                        // Ganzkörper-Vorschau in der Profilkarte
+                        card.innerHTML = `
                         <div class="profile-avatar-wrapper">
                             <span style="font-size: 2.2rem; z-index: 2; margin-top:-5px;">${playerData.avatar.base}</span>
                             <span style="font-size: 1.2rem; margin-top: -12px; z-index: 1;">👕</span>
@@ -168,85 +175,64 @@
                         <div class="profile-name">${playerData.name}</div>
                         <div class="profile-coins">🪙 ${playerData.coins}</div>
                     `;
-                    grid.appendChild(card);
+                        grid.appendChild(card);
+                    }
+                });
+            }
+        }
+
+        function loginAs(name) {
+            try { playTone(523, 'sine', 0.1); } catch (e) { }
+            sessionStorage.setItem("current_quiz_player", name);
+            setTimeout(() => { window.location.href = "menu.html"; }, 150);
+        }
+
+        function handleLogin() {
+            const input = document.getElementById("username-input");
+            const name = input.value.trim();
+            if (!name) { alert("Bitte gib deinen Namen ein!"); return; }
+
+            try { playTone(440, 'sine', 0.1); } catch (e) { }
+
+            sessionStorage.setItem("current_quiz_player", name);
+            let nameKey = name.toLowerCase();
+            let savedData = localStorage.getItem("quiz_player_" + nameKey);
+
+            if (!savedData) {
+                let newPlayer = {
+                    name: name,
+                    coins: 0,
+                    avatar: { base: "🧑", hat: "", glasses: "" },
+                    unlockedHats: [],
+                    unlockedGlasses: []
+                };
+                localStorage.setItem("quiz_player_" + nameKey, JSON.stringify(newPlayer));
+
+                let playerList = JSON.parse(localStorage.getItem("quiz_player_list") || "[]");
+                if (!playerList.includes(nameKey)) {
+                    playerList.push(nameKey);
+                    localStorage.setItem("quiz_player_list", JSON.stringify(playerList));
                 }
-            });
-        }
-    }
-
-    function loginAs(name) {
-        try { playTone(523, 'sine', 0.1); } catch(e) {}
-        sessionStorage.setItem("current_quiz_player", name);
-        setTimeout(() => { window.location.href = "menu.html"; }, 150);
-    }
-
-    function handleLogin() {
-        const input = document.getElementById("username-input");
-        const name = input.value.trim();
-        if (!name) { alert("Bitte gib deinen Namen ein!"); return; }
-
-        try { playTone(440, 'sine', 0.1); } catch(e) {}
-
-        sessionStorage.setItem("current_quiz_player", name);
-        let nameKey = name.toLowerCase();
-        let savedData = localStorage.getItem("quiz_player_" + nameKey);
-        
-        if (!savedData) {
-            let newPlayer = {
-                name: name,
-                coins: 0,
-                avatar: { base: "🧑", hat: "", glasses: "" },
-                unlockedHats: [],
-                unlockedGlasses: []
-            };
-            localStorage.setItem("quiz_player_" + nameKey, JSON.stringify(newPlayer));
-
-            let playerList = JSON.parse(localStorage.getItem("quiz_player_list") || "[]");
-            if (!playerList.includes(nameKey)) {
-                playerList.push(nameKey);
-                localStorage.setItem("quiz_player_list", JSON.stringify(playerList));
+                setTimeout(() => { window.location.href = "avatar.html"; }, 150);
+            } else {
+                let playerList = JSON.parse(localStorage.getItem("quiz_player_list") || "[]");
+                if (!playerList.includes(nameKey)) {
+                    playerList.push(nameKey);
+                    localStorage.setItem("quiz_player_list", JSON.stringify(playerList));
+                }
+                setTimeout(() => { window.location.href = "menu.html"; }, 150);
             }
-            setTimeout(() => { window.location.href = "avatar.html"; }, 150);
-        } else {
-            let playerList = JSON.parse(localStorage.getItem("quiz_player_list") || "[]");
-            if (!playerList.includes(nameKey)) {
-                playerList.push(nameKey);
-                localStorage.setItem("quiz_player_list", JSON.stringify(playerList));
-            }
-            setTimeout(() => { window.location.href = "menu.html"; }, 150);
         }
-    }
 
-    window.onload = function() {
-        loadExistingProfiles();
-        const qrImg = document.getElementById("qr-code-img");
-        if (qrImg) {
-            const currentUrl = encodeURIComponent(window.location.href);
-            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${currentUrl}&color=1a1a2e&bgcolor=ffffff`;
+        window.onload = function () {
+            loadExistingProfiles();
+            const qrImg = document.getElementById("qr-code-img");
+            if (qrImg) {
+                const currentUrl = encodeURIComponent(window.location.href);
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${currentUrl}&color=1a1a2e&bgcolor=ffffff`;
+            }
         }
-    }
-</script>
+    </script>
 </body>
-</html>
-| "[]");
-            if (!playerList.includes(nameKey)) {
-                playerList.push(nameKey);
-                localStorage.setItem("quiz_player_list", JSON.stringify(playerList));
-            }
-            setTimeout(() => { window.location.href = "menu.html"; }, 150);
-        }
-    }
 
-    window.onload = function() {
-        loadExistingProfiles();
-
-        // Automatische QR-Code Generierung
-        const qrImg = document.getElementById("qr-code-img");
-        if (qrImg) {
-            const currentUrl = encodeURIComponent(window.location.href);
-            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${currentUrl}&color=1a1a2e&bgcolor=ffffff`;
-        }
-    }
-</script>
-</body>
 </html>

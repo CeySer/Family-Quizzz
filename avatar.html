@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Avatar Creator</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 
 <body>
@@ -17,17 +19,12 @@
         </div>
 
         <div class="avatar-creator-layout">
-            <!-- DER NEUE GANZKÖRPER-AVATAR -->
             <div class="avatar-preview-box">
                 <h2 id="creator-title">Dein Avatar 🎨</h2>
                 <div class="avatar-display">
-                    <!-- Kopf -->
                     <div class="avatar-part avatar-head" id="char-base">🧑</div>
-                    <!-- Standard T-Shirt -->
                     <div class="avatar-part avatar-torso">👕</div>
-                    <!-- Standard Hose -->
                     <div class="avatar-part avatar-legs">👖</div>
-                    <!-- Optionale Hüte und Brillen -->
                     <div class="avatar-part" id="char-hat"
                         style="position: absolute; top: -55px; font-size: 5.5rem; z-index: 10;"></div>
                     <div class="avatar-part" id="char-glasses"
@@ -71,6 +68,19 @@
     </div>
 
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
+            authDomain: "family-quizzz-80c40.firebaseapp.com",
+            databaseURL: "https://family-quizzz-80c40-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "family-quizzz-80c40",
+            storageBucket: "family-quizzz-80c40.firebasestorage.app",
+            messagingSenderId: "30751445599",
+            appId: "1:30751445599:web:28636f46555f5df49881ea"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         const shopHats = [
             { id: "cap", label: "Basecap 🧢", price: 20, emoji: "🧢" },
             { id: "wizard", label: "Magierhut 🧙", price: 80, emoji: "🧙" },
@@ -95,7 +105,7 @@
         ];
 
         let playerName = sessionStorage.getItem("current_quiz_player");
-        let currentPlayer = JSON.parse(localStorage.getItem("quiz_player_" + playerName.toLowerCase()));
+        let currentPlayer = null;
         let audioCtx;
 
         function initAudio() {
@@ -120,17 +130,23 @@
         function playCorrectSound() { playTone(523.25, 'sine', 0.1, 0); playTone(659.25, 'sine', 0.15, 80); }
         function playRararaSound() { let now = 0; for (let i = 0; i < 9; i++) { playTone(180 - (i * 5), 'sawtooth', 0.06, now); now += 70; } }
 
-        function initCreator() {
-            document.getElementById("creator-title").innerText = `${currentPlayer.name}s Avatar 🎨`;
-            document.getElementById("current-coins").innerText = currentPlayer.coins;
-            updatePreview();
-            renderShop();
+        function fetchPlayerData() {
+            db.ref("players/" + playerName.toLowerCase()).once("value", (snapshot) => {
+                currentPlayer = snapshot.val();
+                if (!currentPlayer.unlockedHats) currentPlayer.unlockedHats = ["cap"];
+                if (!currentPlayer.unlockedGlasses) currentPlayer.unlockedGlasses = ["nerd"];
+
+                document.getElementById("creator-title").innerText = `${currentPlayer.name}s Avatar 🎨`;
+                document.getElementById("current-coins").innerText = currentPlayer.coins;
+                updatePreview();
+                renderShop();
+            });
         }
 
         function updatePreview() {
             document.getElementById("char-base").innerText = currentPlayer.avatar.base;
-            document.getElementById("char-hat").innerText = currentPlayer.avatar.hat;
-            document.getElementById("char-glasses").innerText = currentPlayer.avatar.glasses;
+            document.getElementById("char-hat").innerText = currentPlayer.avatar.hat || '';
+            document.getElementById("char-glasses").innerText = currentPlayer.avatar.glasses || '';
         }
 
         function selectBase(emoji) { playClickSound(); currentPlayer.avatar.base = emoji; updatePreview(); }
@@ -155,7 +171,7 @@
             glassesGrid.innerHTML = `<button class="shop-item" onclick="equipItem('glasses', '')">❌ Keine Brille</button>`;
 
             shopHats.forEach(item => {
-                const isUnlocked = (currentPlayer.unlockedHats || []).includes(item.id);
+                const isUnlocked = currentPlayer.unlockedHats.includes(item.id);
                 const btn = document.createElement("button");
                 btn.className = `shop-item ${isUnlocked ? 'unlocked' : 'locked'}`;
                 btn.innerHTML = isUnlocked ? `${item.label}<br><span style="color:#26890c;font-size:0.8rem;">Auswählen</span>` : `${item.label}<br><span style="color:#ffd700;font-size:0.8rem;">🪙 ${item.price}</span>`;
@@ -164,7 +180,7 @@
             });
 
             shopGlasses.forEach(item => {
-                const isUnlocked = (currentPlayer.unlockedGlasses || []).includes(item.id);
+                const isUnlocked = currentPlayer.unlockedGlasses.includes(item.id);
                 const btn = document.createElement("button");
                 btn.className = `shop-item ${isUnlocked ? 'unlocked' : 'locked'}`;
                 btn.innerHTML = isUnlocked ? `${item.label}<br><span style="color:#26890c;font-size:0.8rem;">Auswählen</span>` : `${item.label}<br><span style="color:#ffd700;font-size:0.8rem;">🪙 ${item.price}</span>`;
@@ -174,9 +190,6 @@
         }
 
         function buyItem(type, item) {
-            if (!currentPlayer.unlockedHats) currentPlayer.unlockedHats = [];
-            if (!currentPlayer.unlockedGlasses) currentPlayer.unlockedGlasses = [];
-
             if (currentPlayer.coins >= item.price) {
                 currentPlayer.coins -= item.price;
                 playCorrectSound();
@@ -184,7 +197,7 @@
                 else { currentPlayer.unlockedGlasses.push(item.id); currentPlayer.avatar.glasses = item.emoji; }
                 document.getElementById("current-coins").innerText = currentPlayer.coins;
                 updatePreview(); renderShop();
-                localStorage.setItem("quiz_player_" + playerName.toLowerCase(), JSON.stringify(currentPlayer));
+                db.ref("players/" + playerName.toLowerCase()).set(currentPlayer);
             } else {
                 playRararaSound();
                 alert("Nicht genug Coins!");
@@ -193,11 +206,12 @@
 
         function saveAndGoToMenu() {
             playClickSound();
-            localStorage.setItem("quiz_player_" + playerName.toLowerCase(), JSON.stringify(currentPlayer));
-            setTimeout(() => { window.location.href = "menu.html"; }, 150);
+            db.ref("players/" + playerName.toLowerCase()).set(currentPlayer, () => {
+                window.location.href = "menu.html";
+            });
         }
 
-        window.onload = initCreator;
+        window.onload = fetchPlayerData;
     </script>
 </body>
 

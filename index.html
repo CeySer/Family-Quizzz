@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Özdemir Familien-Quiz - Login</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
         .profile-container {
             margin-bottom: 20px;
@@ -96,7 +98,6 @@
     <div class="container" id="login-screen">
         <h1 class="main-title">Özdemir Familien-Quiz 🎮</h1>
 
-        <!-- BESTEHENDE PROFILE (Netflix-Stil) -->
         <div class="profile-container" id="existing-profiles-box" style="display: none;">
             <div class="setup-title" style="margin-bottom: 5px;">Wer spielt heute? 👤</div>
             <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">Tippe auf dein Profil, um direkt
@@ -106,7 +107,6 @@
 
         <div class="divider" id="profile-divider" style="display: none;">ODER</div>
 
-        <!-- NEUER SPIELER ANMELDEN -->
         <div class="setup-section">
             <div class="setup-title" id="new-player-title">Neuen Spieler anmelden ✍️</div>
             <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">Gib deinen Namen ein, um ein neues Profil
@@ -115,7 +115,6 @@
             <button id="login-btn" onclick="handleLogin()">Anmelden & Weiter 🚀</button>
         </div>
 
-        <!-- QR-CODE BEREICH -->
         <div class="qr-box" id="qr-box">
             <div style="font-size: 1rem; font-weight: bold; margin-bottom: 5px; color: #ff6b81;">Auf dem Handy spielen?
                 📱</div>
@@ -127,6 +126,19 @@
     </div>
 
     <script>
+        // Deine Konfiguration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
+            authDomain: "family-quizzz-80c40.firebaseapp.com",
+            databaseURL: "https://family-quizzz-80c40-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "family-quizzz-80c40",
+            storageBucket: "family-quizzz-80c40.firebasestorage.app",
+            messagingSenderId: "30751445599",
+            appId: "1:30751445599:web:28636f46555f5df49881ea"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
         let audioCtx;
 
         function initAudio() {
@@ -145,25 +157,24 @@
             osc.start(); osc.stop(audioCtx.currentTime + duration);
         }
 
-        function loadExistingProfiles() {
-            let playerNames = JSON.parse(localStorage.getItem("quiz_player_list") || "[]");
-
-            if (playerNames.length > 0) {
-                document.getElementById("existing-profiles-box").style.display = "block";
-                document.getElementById("profile-divider").style.display = "flex";
-                document.getElementById("new-player-title").innerText = "Neues Profil erstellen 👤";
-
+        // Lädt Profile live aus dem Internet
+        function listenToProfiles() {
+            db.ref("players").on("value", (snapshot) => {
+                const players = snapshot.val();
                 const grid = document.getElementById("profile-grid");
                 grid.innerHTML = "";
 
-                playerNames.forEach(nameKey => {
-                    let playerData = JSON.parse(localStorage.getItem("quiz_player_" + nameKey));
-                    if (playerData) {
+                if (players) {
+                    document.getElementById("existing-profiles-box").style.display = "block";
+                    document.getElementById("profile-divider").style.display = "flex";
+                    document.getElementById("new-player-title").innerText = "Neues Profil erstellen 👤";
+
+                    Object.keys(players).forEach(key => {
+                        const playerData = players[key];
                         const card = document.createElement("div");
                         card.className = "profile-card";
                         card.onclick = () => loginAs(playerData.name);
 
-                        // Ganzkörper-Vorschau in der Profilkarte
                         card.innerHTML = `
                         <div class="profile-avatar-wrapper">
                             <span style="font-size: 2.2rem; z-index: 2; margin-top:-5px;">${playerData.avatar.base}</span>
@@ -176,9 +187,9 @@
                         <div class="profile-coins">🪙 ${playerData.coins}</div>
                     `;
                         grid.appendChild(card);
-                    }
-                });
-            }
+                    });
+                }
+            });
         }
 
         function loginAs(name) {
@@ -193,39 +204,31 @@
             if (!name) { alert("Bitte gib deinen Namen ein!"); return; }
 
             try { playTone(440, 'sine', 0.1); } catch (e) { }
-
             sessionStorage.setItem("current_quiz_player", name);
             let nameKey = name.toLowerCase();
-            let savedData = localStorage.getItem("quiz_player_" + nameKey);
 
-            if (!savedData) {
-                let newPlayer = {
-                    name: name,
-                    coins: 0,
-                    avatar: { base: "🧑", hat: "", glasses: "" },
-                    unlockedHats: [],
-                    unlockedGlasses: []
-                };
-                localStorage.setItem("quiz_player_" + nameKey, JSON.stringify(newPlayer));
-
-                let playerList = JSON.parse(localStorage.getItem("quiz_player_list") || "[]");
-                if (!playerList.includes(nameKey)) {
-                    playerList.push(nameKey);
-                    localStorage.setItem("quiz_player_list", JSON.stringify(playerList));
+            // Prüfen, ob der Spieler bereits in Firebase existiert
+            db.ref("players/" + nameKey).once("value", (snapshot) => {
+                if (!snapshot.exists()) {
+                    // Neu anlegen in Firebase
+                    let newPlayer = {
+                        name: name,
+                        coins: 0,
+                        avatar: { base: "🧑", hat: "", glasses: "" },
+                        unlockedHats: ["cap"],
+                        unlockedGlasses: ["nerd"]
+                    };
+                    db.ref("players/" + nameKey).set(newPlayer, () => {
+                        window.location.href = "avatar.html";
+                    });
+                } else {
+                    window.location.href = "menu.html";
                 }
-                setTimeout(() => { window.location.href = "avatar.html"; }, 150);
-            } else {
-                let playerList = JSON.parse(localStorage.getItem("quiz_player_list") || "[]");
-                if (!playerList.includes(nameKey)) {
-                    playerList.push(nameKey);
-                    localStorage.setItem("quiz_player_list", JSON.stringify(playerList));
-                }
-                setTimeout(() => { window.location.href = "menu.html"; }, 150);
-            }
+            });
         }
 
         window.onload = function () {
-            loadExistingProfiles();
+            listenToProfiles();
             const qrImg = document.getElementById("qr-code-img");
             if (qrImg) {
                 const currentUrl = encodeURIComponent(window.location.href);

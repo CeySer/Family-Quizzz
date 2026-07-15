@@ -14,7 +14,6 @@
 <body>
 
     <div class="container">
-        <!-- BAR FÜR SCHATZKISTE -->
         <div id="learning-chest-bar"
             style="display: none; background: #1f4068; padding: 10px; border-radius: 10px; margin-bottom: 10px; text-align: center; border: 2px solid #ffd700; font-weight: bold; color: white;">
             🎁 Lernzeit bis zur epischen Schatzkiste: <span id="chest-timer-display">15:00</span> Min
@@ -36,7 +35,6 @@
         </div>
     </div>
 
-    <!-- KISTEN-OVERLAY -->
     <div id="chest-overlay"
         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,10,25,0.95); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center;">
         <h1 style="color: #ffd700; font-size: 2.2rem; margin-bottom: 20px;">🎉 15 MINUTEN GELERNT! 🎉</h1>
@@ -78,7 +76,7 @@
         let learningInterval;
         const SECONDS_NEEDED_FOR_CHEST = 900; // 15 Min
 
-        db.ref("players/" + playerName.toLowerCase()).on("value", (snapshot) => {
+        db.ref("players/" + (playerName ? playerName.toLowerCase() : "")).on("value", (snapshot) => {
             currentPlayer = snapshot.val();
             if (currentPlayer) {
                 document.getElementById("quiz-coins").innerText = currentPlayer.coins || 0;
@@ -88,15 +86,25 @@
         });
 
         function initQuiz() {
-            if (typeof allQuestions !== "undefined") {
-                filteredQuestions = allQuestions.filter(q => settings.categories.includes(q.category));
+            // Prüfen, ob allQuestions existiert und geladen wurde
+            if (typeof allQuestions === "undefined" || !Array.isArray(allQuestions) || allQuestions.length === 0) {
+                document.getElementById("question-text").innerText = "❌ Fehler: 'questions.js' wurde nicht gefunden oder ist leer! Bitte überprüfe die Datei im Hauptordner.";
+                return;
             }
-            if (filteredQuestions.length === 0) filteredQuestions = allQuestions;
+
+            filteredQuestions = allQuestions.filter(q => settings.categories.includes(q.category));
+
+            if (filteredQuestions.length === 0) {
+                filteredQuestions = allQuestions;
+            }
+
             showQuestion();
-            if (settings.mode === "lernen") startLearningTimer();
+            if (settings.mode === "lernen" && playerName) startLearningTimer();
         }
 
         function showQuestion() {
+            if (filteredQuestions.length === 0) return;
+
             let q = filteredQuestions[currentQuestionIndex];
             document.getElementById("question-text").innerText = `[#${q.id}] ${q.question}`;
             let container = document.getElementById("options-container");
@@ -112,7 +120,7 @@
         }
 
         function handleAnswer(isCorrect) {
-            if (isCorrect && playerName.toLowerCase() !== "admin") {
+            if (isCorrect && playerName && playerName.toLowerCase() !== "admin") {
                 let age = currentPlayer ? currentPlayer.age || 10 : 10;
                 let multiplier = age < 8 ? 5 : (age <= 10 ? 3 : (age <= 14 ? 2 : 1));
 

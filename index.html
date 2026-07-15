@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Özdemir Familien-Quiz - Login</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
@@ -90,6 +91,24 @@
             background: #333;
             margin: 0 15px;
         }
+
+        .age-input-container {
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        #age-input {
+            width: 100%;
+            max-width: 320px;
+            padding: 14px;
+            font-size: 1.15rem;
+            border: 2px solid #1368ce;
+            border-radius: 8px;
+            background-color: #16213e;
+            color: white;
+            text-align: center;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 
@@ -98,6 +117,7 @@
     <div class="container" id="login-screen">
         <h1 class="main-title">Özdemir Familien-Quiz 🎮</h1>
 
+        <!-- BESTEHENDE PROFILE AUS DER CLOUD -->
         <div class="profile-container" id="existing-profiles-box" style="display: none;">
             <div class="setup-title" style="margin-bottom: 5px;">Wer spielt heute? 👤</div>
             <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">Tippe auf dein Profil, um direkt
@@ -107,14 +127,21 @@
 
         <div class="divider" id="profile-divider" style="display: none;">ODER</div>
 
+        <!-- NEUER SPIELER ANMELDEN -->
         <div class="setup-section">
             <div class="setup-title" id="new-player-title">Neuen Spieler anmelden ✍️</div>
-            <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">Gib deinen Namen ein, um ein neues Profil
-                zu erstellen.</p>
-            <input type="text" id="username-input" placeholder="Dein Name..." autocomplete="off">
+            <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 5px;">Gib deinen Namen und dein Alter an:</p>
+
+            <input type="text" id="username-input" placeholder="Dein Name..." autocomplete="off"><br>
+
+            <div class="age-input-container">
+                <input type="number" id="age-input" placeholder="Dein Alter (z.B. 8)..." min="1" max="99">
+            </div>
+
             <button id="login-btn" onclick="handleLogin()">Anmelden & Weiter 🚀</button>
         </div>
 
+        <!-- QR-CODE BEREICH -->
         <div class="qr-box" id="qr-box">
             <div style="font-size: 1rem; font-weight: bold; margin-bottom: 5px; color: #ff6b81;">Auf dem Handy spielen?
                 📱</div>
@@ -126,7 +153,6 @@
     </div>
 
     <script>
-        // Deine Konfiguration
         const firebaseConfig = {
             apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
             authDomain: "family-quizzz-80c40.firebaseapp.com",
@@ -157,7 +183,6 @@
             osc.start(); osc.stop(audioCtx.currentTime + duration);
         }
 
-        // Lädt Profile live aus dem Internet
         function listenToProfiles() {
             db.ref("players").on("value", (snapshot) => {
                 const players = snapshot.val();
@@ -171,6 +196,9 @@
 
                     Object.keys(players).forEach(key => {
                         const playerData = players[key];
+                        // Admin soll nicht in der normalen Auswahlliste auftauchen
+                        if (playerData.name.toLowerCase() === "admin") return;
+
                         const card = document.createElement("div");
                         card.className = "profile-card";
                         card.onclick = () => loginAs(playerData.name);
@@ -185,6 +213,7 @@
                         </div>
                         <div class="profile-name">${playerData.name}</div>
                         <div class="profile-coins">🪙 ${playerData.coins}</div>
+                        <div style="font-size:0.75rem; color:#aaa; margin-top:2px;">${playerData.age || '?'} Jahre</div>
                     `;
                         grid.appendChild(card);
                     });
@@ -200,29 +229,46 @@
 
         function handleLogin() {
             const input = document.getElementById("username-input");
+            const ageInput = document.getElementById("age-input");
             const name = input.value.trim();
+            const age = parseInt(ageInput.value);
+
             if (!name) { alert("Bitte gib deinen Namen ein!"); return; }
+
+            if (name.toLowerCase() === "admin") {
+                sessionStorage.setItem("current_quiz_player", "Admin");
+                window.location.href = "menu.html"; // Admin leitet ins Menü weiter, dort gibt es den Admin-Button
+                return;
+            }
+
+            if (!age || age < 1) { alert("Bitte gib ein gültiges Alter an!"); return; }
 
             try { playTone(440, 'sine', 0.1); } catch (e) { }
             sessionStorage.setItem("current_quiz_player", name);
             let nameKey = name.toLowerCase();
 
-            // Prüfen, ob der Spieler bereits in Firebase existiert
             db.ref("players/" + nameKey).once("value", (snapshot) => {
                 if (!snapshot.exists()) {
-                    // Neu anlegen in Firebase
                     let newPlayer = {
                         name: name,
+                        age: age,
                         coins: 0,
                         avatar: { base: "🧑", hat: "", glasses: "" },
                         unlockedHats: ["cap"],
-                        unlockedGlasses: ["nerd"]
+                        unlockedGlasses: ["nerd"],
+                        lastCategories: ["sprachen"], // Standardmäßig nur die erste Kategorie
+                        streak: 0,                    // Für dynamische Schwierigkeit
+                        difficulty: 1,                // Start bei Level 1
+                        learnedQuestions: {}          // Für den Lernmodus
                     };
                     db.ref("players/" + nameKey).set(newPlayer, () => {
                         window.location.href = "avatar.html";
                     });
                 } else {
-                    window.location.href = "menu.html";
+                    // Alter bei bestehendem Spieler aktualisieren, falls neu eingegeben
+                    db.ref("players/" + nameKey).update({ age: age }, () => {
+                        window.location.href = "menu.html";
+                    });
                 }
             });
         }

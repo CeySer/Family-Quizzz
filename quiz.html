@@ -53,16 +53,8 @@
         </div>
     </div>
 
+    <script src="questions.js"></script>
     <script>
-        const allQuestions = [
-            { id: 101, category: "sprachen", question: "Was bedeutet 'Seni seviyorum'?", answers: ["Guten Appetit", "Ich liebe dich", "Gute Nacht", "Tschüss"], correct: 1 },
-            { id: 102, category: "sprachen", question: "Was bedeutet 'Baba' auf Türkisch?", answers: ["Opa", "Onkel", "Vater", "Bruder"], correct: 2 },
-            { id: 201, category: "islam", question: "Wer ist der letzte Gesandte im Islam?", answers: ["Ibrahim", "Isa", "Musa", "Muhammad"], correct: 3 },
-            { id: 301, category: "klasse2", question: "Was ergibt 12 + 7?", answers: ["15", "18", "19", "20"], correct: 2 },
-            { id: 401, category: "klasse4", question: "Mathe: Was ergibt 120 x 3?", answers: ["320", "360", "400", "420"], correct: 1 },
-            { id: 501, category: "kfz", question: "LF 2: Welches Prüfmittel misst das Ventilspiel?", answers: ["Fühlerlehre", "Messschieber", "Bügelmessschraube", "Messuhr"], correct: 0 }
-        ];
-
         const firebaseConfig = {
             apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
             authDomain: "family-quizzz-80c40.firebaseapp.com",
@@ -77,7 +69,7 @@
         const db = firebase.database();
 
         let playerName = sessionStorage.getItem("current_quiz_player");
-        let settings = JSON.parse(sessionStorage.getItem("quiz_settings")) || { categories: ["sprachen"], mode: "spiel" };
+        let settings = JSON.parse(sessionStorage.getItem("quiz_settings")) || { categories: ["klasse2"], mode: "spiel" };
         let currentPlayer = null;
         let currentQuestionIndex = 0;
         let filteredQuestions = [];
@@ -96,7 +88,9 @@
         });
 
         function initQuiz() {
-            filteredQuestions = allQuestions.filter(q => settings.categories.includes(q.category));
+            if (typeof allQuestions !== "undefined") {
+                filteredQuestions = allQuestions.filter(q => settings.categories.includes(q.category));
+            }
             if (filteredQuestions.length === 0) filteredQuestions = allQuestions;
             showQuestion();
             if (settings.mode === "lernen") startLearningTimer();
@@ -120,7 +114,7 @@
         function handleAnswer(isCorrect) {
             if (isCorrect && playerName.toLowerCase() !== "admin") {
                 let age = currentPlayer ? currentPlayer.age || 10 : 10;
-                let multiplier = age < 8 ? 5 : (age <= 10 ? 3 : (age <= 14 ? 2 : 1)); // FAIR-PLAY MULTIPLIKATOR
+                let multiplier = age < 8 ? 5 : (age <= 10 ? 3 : (age <= 14 ? 2 : 1));
 
                 db.ref("players/" + playerName.toLowerCase()).transaction((p) => {
                     if (p) {

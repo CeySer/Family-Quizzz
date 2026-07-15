@@ -48,14 +48,11 @@
         const db = firebase.database();
         let oldName = sessionStorage.getItem("current_quiz_player");
 
-        if (!oldName) {
-            window.location.href = "index.html";
-        }
+        if (!oldName) { window.location.href = "index.html"; }
 
         let oldKey = oldName.toLowerCase();
         let playerData = null;
 
-        // Aktuelle Daten aus Firebase laden
         db.ref("players/" + oldKey).once("value", (snapshot) => {
             playerData = snapshot.val();
             if (playerData) {
@@ -68,24 +65,16 @@
             let newName = document.getElementById("profile-name").value.trim();
             let newAge = parseInt(document.getElementById("profile-age").value);
 
-            if (!newName) {
-                alert("Bitte gib einen Namen ein!");
-                return;
-            }
-            if (!newAge || newAge < 1) {
-                alert("Bitte gib ein gültiges Alter ein!");
-                return;
-            }
+            if (!newName) { alert("Bitte gib einen Namen ein!"); return; }
+            if (!newAge || newAge < 1) { alert("Bitte gib ein gültiges Alter ein!"); return; }
 
             let newKey = newName.toLowerCase();
 
-            // Wenn der Name geändert wurde
             if (newKey !== oldKey) {
                 db.ref("players/" + newKey).once("value", (snapshot) => {
                     if (snapshot.exists()) {
-                        alert("Dieser Name ist bereits vergeben. Bitte wähle einen anderen Namen!");
+                        alert("Dieser Name ist bereits vergeben!");
                     } else {
-                        // Daten unter dem neuen Namen speichern und altes Profil löschen
                         playerData.name = newName;
                         playerData.age = newAge;
 
@@ -98,10 +87,7 @@
                     }
                 });
             } else {
-                // Nur Alter wurde geändert
-                db.ref("players/" + oldKey).update({
-                    age: newAge
-                }, () => {
+                db.ref("players/" + oldKey).update({ age: newAge }, () => {
                     window.location.href = "menu.html";
                 });
             }

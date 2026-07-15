@@ -38,7 +38,7 @@
 <body>
 
     <div class="container">
-        <!-- ADMIN PANEL (Nur sichtbar für den Nutzer 'Admin') -->
+        <!-- ADMIN PANEL -->
         <div id="admin-box" class="admin-panel" style="display: none;">
             <h2 style="margin-top: 0; color: #ffd700;">👨‍🔧 Admin-Kontrollzentrum</h2>
             <p style="font-size: 0.85rem; color: #aaa;">Alle nummerierten Fragen im System:</p>
@@ -100,13 +100,13 @@
         <div class="setup-section" style="margin-top: 15px;">
             <div class="setup-title">2. Themen-Kategorien 🎒</div>
             <div class="option-group" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
-                <button class="opt-btn cat-btn active" id="cat-sprachen" onclick="toggleCategory('sprachen')">🗣️
-                    Sprachen</button>
-                <button class="opt-btn cat-btn" id="cat-islam" onclick="toggleCategory('islam')">🕌 Islam</button>
-                <button class="opt-btn cat-btn" id="cat-klasse2" onclick="toggleCategory('klasse2')">🏫 2.
+                <button class="opt-btn cat-btn active" id="cat-klasse2" onclick="toggleCategory('klasse2')">🏫 2.
                     Klasse</button>
                 <button class="opt-btn cat-btn" id="cat-klasse5" onclick="toggleCategory('klasse5')">🏫 5.
                     Klasse</button>
+                <button class="opt-btn cat-btn" id="cat-sprachen" onclick="toggleCategory('sprachen')">🗣️
+                    Sprachen</button>
+                <button class="opt-btn cat-btn" id="cat-islam" onclick="toggleCategory('islam')">🕌 Islam</button>
                 <button class="opt-btn cat-btn" id="cat-kfz" onclick="toggleCategory('kfz')">🔧 KFZ Lernfeld
                     1-4</button>
             </div>
@@ -117,6 +117,7 @@
             starten! 🚀</button>
     </div>
 
+    <script src="questions.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
@@ -133,7 +134,7 @@
 
         let playerName = sessionStorage.getItem("current_quiz_player");
         let currentPlayer = null;
-        let selectedCategories = ["sprachen"];
+        let selectedCategories = ["klasse2"];
         let gameMode = "spiel";
 
         function initMenu() {
@@ -144,6 +145,7 @@
                 document.getElementById("welcome-text").innerText = "Chef (Admin)";
                 document.getElementById("mini-avatar").innerText = "⚙️";
                 document.getElementById("shop-btn").style.display = "none";
+                loadAdminQuestions();
             } else {
                 db.ref("players/" + playerName.toLowerCase()).on("value", (snapshot) => {
                     currentPlayer = snapshot.val();
@@ -153,7 +155,7 @@
                     document.getElementById("menu-coins").innerText = currentPlayer.coins || 0;
                     document.getElementById("user-age-tag").innerText = `(${currentPlayer.age || '?'} J.)`;
 
-                    selectedCategories = currentPlayer.lastCategories || ["sprachen"];
+                    selectedCategories = currentPlayer.lastCategories || ["klasse2"];
                     updateCategoryButtons();
 
                     let base = currentPlayer.avatar ? currentPlayer.avatar.base || "🧑" : "🧑";
@@ -202,6 +204,23 @@
                     leaderboardContainer.appendChild(row);
                 });
             });
+        }
+
+        function loadAdminQuestions() {
+            const container = document.getElementById("admin-questions-container");
+            container.innerHTML = "";
+            if (typeof allQuestions !== "undefined" && allQuestions.length > 0) {
+                allQuestions.forEach(q => {
+                    const item = document.createElement("div");
+                    item.className = "admin-q-item";
+                    item.innerHTML = `
+                    <strong>[Frage #${q.id}]</strong> [${q.category.toUpperCase()} - Lvl ${q.level}] 
+                    <span style="color: #ff6b81;">${q.question}</span><br>
+                    <span style="color: #26890c; font-size:0.8rem;">Richtige Antwort: ${q.answers[q.correct]}</span>
+                `;
+                    container.appendChild(item);
+                });
+            }
         }
 
         function setGameMode(mode) {

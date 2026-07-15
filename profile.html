@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil bearbeiten</title>
+    <title>Profil bearbeiten - Family Quizzz</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -12,22 +12,25 @@
 
 <body>
 
-    <div class="container">
+    <div class="container" style="text-align: center; max-width: 400px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #ff6b81;">Profil bearbeiten ⚙️</h2>
 
-        <div class="setup-section" style="text-align: left;">
-            <label>Dein Name (nicht änderbar):</label>
-            <input type="text" id="profile-name" disabled
-                style="background:#333; color:#aaa; width:100%; padding:10px; border-radius:8px; border:none; margin:10px 0;">
+        <div style="background: #16213e; padding: 20px; border-radius: 12px; text-align: left; margin-bottom: 20px;">
+            <label style="color: #aaa; font-size: 0.9rem;">Dein Name:</label>
+            <input type="text" id="profile-name"
+                style="width:100%; padding:12px; border-radius:8px; border:2px solid #1368ce; background:#1a1a2e; color:white; font-size:1rem; margin:8px 0 18px 0; box-sizing:border-box;">
 
-            <label>Dein Alter:</label>
-            <input type="number" id="profile-age"
-                style="width:100%; padding:10px; border-radius:8px; border:2px solid #1368ce; background:#16213e; color:white; margin:10px 0; box-sizing:border-box;">
+            <label style="color: #aaa; font-size: 0.9rem;">Dein Alter (für faire Punkte):</label>
+            <input type="number" id="profile-age" min="1" max="99"
+                style="width:100%; padding:12px; border-radius:8px; border:2px solid #1368ce; background:#1a1a2e; color:white; font-size:1rem; margin:8px 0 0 0; box-sizing:border-box;">
         </div>
 
-        <button id="save-profile-btn" onclick="saveProfile()"
-            style="background-color: #26890c; color:white; padding:15px; border:none; border-radius:10px; width:100%; font-size:1.1rem; cursor:pointer;">Speichern
+        <button onclick="saveProfile()"
+            style="background-color: #26890c; color:white; padding:15px; border:none; border-radius:10px; width:100%; font-size:1.1rem; font-weight:bold; cursor:pointer; margin-bottom: 10px;">Speichern
             & zurück 💾</button>
+        <button onclick="window.location.href='menu.html'"
+            style="background-color: #555; color:white; padding:12px; border:none; border-radius:10px; width:100%; font-size:1rem; cursor:pointer;">Abbrechen
+            ❌</button>
     </div>
 
     <script>
@@ -43,25 +46,64 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let playerName = sessionStorage.getItem("current_quiz_player");
+        let oldName = sessionStorage.getItem("current_quiz_player");
 
-        // Daten laden
-        db.ref("players/" + playerName.toLowerCase()).once("value", (snapshot) => {
-            let player = snapshot.val();
-            document.getElementById("profile-name").value = player.name;
-            document.getElementById("profile-age").value = player.age;
+        if (!oldName) {
+            window.location.href = "index.html";
+        }
+
+        let oldKey = oldName.toLowerCase();
+        let playerData = null;
+
+        // Aktuelle Daten aus Firebase laden
+        db.ref("players/" + oldKey).once("value", (snapshot) => {
+            playerData = snapshot.val();
+            if (playerData) {
+                document.getElementById("profile-name").value = playerData.name || oldName;
+                document.getElementById("profile-age").value = playerData.age || "";
+            }
         });
 
         function saveProfile() {
+            let newName = document.getElementById("profile-name").value.trim();
             let newAge = parseInt(document.getElementById("profile-age").value);
-            if (newAge > 0) {
-                db.ref("players/" + playerName.toLowerCase()).update({
+
+            if (!newName) {
+                alert("Bitte gib einen Namen ein!");
+                return;
+            }
+            if (!newAge || newAge < 1) {
+                alert("Bitte gib ein gültiges Alter ein!");
+                return;
+            }
+
+            let newKey = newName.toLowerCase();
+
+            // Wenn der Name geändert wurde
+            if (newKey !== oldKey) {
+                db.ref("players/" + newKey).once("value", (snapshot) => {
+                    if (snapshot.exists()) {
+                        alert("Dieser Name ist bereits vergeben. Bitte wähle einen anderen Namen!");
+                    } else {
+                        // Daten unter dem neuen Namen speichern und altes Profil löschen
+                        playerData.name = newName;
+                        playerData.age = newAge;
+
+                        db.ref("players/" + newKey).set(playerData, () => {
+                            db.ref("players/" + oldKey).remove(() => {
+                                sessionStorage.setItem("current_quiz_player", newName);
+                                window.location.href = "menu.html";
+                            });
+                        });
+                    }
+                });
+            } else {
+                // Nur Alter wurde geändert
+                db.ref("players/" + oldKey).update({
                     age: newAge
                 }, () => {
                     window.location.href = "menu.html";
                 });
-            } else {
-                alert("Bitte ein gültiges Alter eingeben!");
             }
         }
     </script>

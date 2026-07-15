@@ -4,98 +4,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz-Arena</title>
+    <title>Quiz Arena - Family Quizzz</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase SDK Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 
 <body>
 
-    <canvas id="rain-canvas"></canvas>
-    <div class="cloud-container" id="clouds">
-        <div class="cloud-puff" style="left: -20px; width: 200px; height: 100px;"></div>
-        <div class="cloud-puff" style="left: 280px; width: 220px; height: 110px;"></div>
-        <div class="cloud-puff" style="left: 580px; width: 250px; height: 120px;"></div>
-        <div class="cloud-puff" style="left: 880px; width: 250px; height: 110px;"></div>
-    </div>
+    <div class="container">
+        <!-- BAR FÜR SCHATZKISTE -->
+        <div id="learning-chest-bar"
+            style="display: none; background: #1f4068; padding: 10px; border-radius: 10px; margin-bottom: 10px; text-align: center; border: 2px solid #ffd700; font-weight: bold; color: white;">
+            🎁 Lernzeit bis zur epischen Schatzkiste: <span id="chest-timer-display">15:00</span> Min
+        </div>
 
-    <div id="emoji-overlay"></div>
-
-    <!-- GAME INTERFACE -->
-    <div class="container" id="quiz-container">
         <div
-            style="display: flex; justify-content: space-between; width: 100%; max-width: 1000px; margin-bottom: 10px;">
-            <div id="question-counter" style="font-size: 1.2rem; color: #888;">Frage 1</div>
-            <div id="difficulty-badge" style="font-size: 1.1rem; color: #ffd700; font-weight: bold;">Level 1</div>
-            <div id="timer-box">⏱️ <span id="timer-count">30</span>s</div>
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: white;">
+            <button onclick="window.location.href='menu.html'"
+                style="background: #555; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer;">Menü
+                🏠</button>
+            <span style="font-size: 1.2rem; font-weight: bold; color: #ffd700;">🪙 <span id="quiz-coins">0</span></span>
         </div>
-        <div class="question-box" id="question">Lade Frage...</div>
-        <div class="grid" id="answer-buttons"></div>
-        <button id="next-btn" onclick="nextQuestion()">Nächste Frage ➔</button>
+
+        <div id="quiz-box"
+            style="background: #16213e; padding: 20px; border-radius: 15px; text-align: center; color: white;">
+            <h2 id="question-text" style="color: #ff6b81;">Lade Frage...</h2>
+            <div id="options-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+            </div>
+        </div>
     </div>
 
-    <!-- RESULTS -->
-    <div class="container" id="result-screen" style="display: none;">
-        <div id="final-header"></div>
-        <div class="stats-box">
-            <div class="stat correct-stat">
-                <div style="color: #26890c; font-size: 1.2rem; margin-bottom: 5px;">Richtig</div>
-                <span id="score-correct">0</span>
-                <div style="font-size: 0.8rem; color: #aaa; margin-top: 5px;">+ <span id="won-coins">0</span> Coins 🪙
-                </div>
-            </div>
-            <div class="stat wrong-stat">
-                <div style="color: #e21b3c; font-size: 1.2rem; margin-bottom: 5px;">Falsch</div>
-                <span id="score-wrong">0</span>
-            </div>
+    <!-- KISTEN-OVERLAY -->
+    <div id="chest-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,10,25,0.95); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center;">
+        <h1 style="color: #ffd700; font-size: 2.2rem; margin-bottom: 20px;">🎉 15 MINUTEN GELERNT! 🎉</h1>
+        <div id="chest-emoji" style="font-size: 7rem; cursor: pointer;" onclick="openChest()">🎁</div>
+        <p id="chest-instruction" style="color: #aaa; margin-top: 15px;">Klicke auf das Geschenk, um es zu öffnen!</p>
+
+        <div id="reward-display" style="display: none; margin-top: 20px;">
+            <h2 style="color: #ff6b81;">Neues episches Item freigeschaltet!</h2>
+            <div id="reward-emoji" style="font-size: 5rem; margin: 15px 0;">👑</div>
+            <h3 id="reward-name" style="color: #ffd700;">Goldene Krone</h3>
+            <button onclick="closeChestAndContinue()"
+                style="background: #26890c; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; margin-top: 20px;">Genial!
+                Weiter ➔</button>
         </div>
-        <div id="difficulty-feedback" style="margin: 15px 0; font-weight: bold; color: #ff6b81;"></div>
-        <button id="next-btn" style="display:inline-block; margin-right:10px;"
-            onclick="window.location.href='avatar.html'">Avatar anpassen 🎨</button>
-        <button id="next-btn" style="display:inline-block;" onclick="window.location.href='menu.html'">Hauptmenü
-            🏠</button>
     </div>
 
     <script>
-        // DEINE FRAGENDATENBANK - NUMMERIERT (ID) UND MIT SCHWIERIGKEITSLEVEL (1 bis 3)
-        // Am Wochenende befüllen wir diese Liste pro Kategorie auf 50 Stück!
         const allQuestions = [
-            // --- SPRACHEN (IDs 101+) ---
-            { id: 101, level: 1, category: "sprachen", question: "Was bedeutet der Satz 'Seni seviyorum'?", answers: ["Guten Appetit", "Ich liebe dich", "Wie geht es dir?", "Gute Nacht"], correct: 1 },
-            { id: 102, level: 1, category: "sprachen", question: "Was bedeutet das Wort 'Baba' auf Türkisch?", answers: ["Opa", "Bruder", "Vater", "Onkel"], correct: 2 },
-            { id: 103, level: 1, category: "sprachen", question: "Wie bedankt man sich auf Türkisch?", answers: ["Merhaba", "Teşekkür ederim", "Lütfen", "Rica ederim"], correct: 1 },
-            { id: 104, level: 2, category: "sprachen", question: "Was bedeutet das englische Wort 'Environment'?", answers: ["Familie", "Nachbarschaft", "Umwelt", "Entwicklung"], correct: 2 },
-            { id: 105, level: 3, category: "sprachen", question: "Was bedeutet 'Teşekkürler, iyiyim. Sen nasılsın?'?", answers: ["Danke, mir geht's gut. Wie geht es dir?", "Guten Morgen, mein Freund.", "Ich möchte bitte schlafen.", "Wo ist der nächste Laden?"], correct: 0 },
-
-            // --- ISLAM (IDs 201+) ---
-            { id: 201, level: 1, category: "islam", question: "Wer ist der letzte Gesandte im Islam?", answers: ["Prophet Ibrahim", "Prophet Isa", "Prophet Musa", "Prophet Muhammad"], correct: 3 },
-            { id: 202, level: 1, category: "islam", question: "Wie heißt das heilige Buch im Islam?", answers: ["Tora", "Evangelium", "Koran", "Psalmen"], correct: 2 },
-            { id: 203, level: 2, category: "islam", question: "Wie viele Pflichtgebete verrichtet ein Muslim am Tag?", answers: ["3 Gebete", "4 Gebete", "5 Gebete", "6 Gebete"], correct: 2 },
-            { id: 204, level: 2, category: "islam", question: "Wie heißt das Mittagsgebet auf Arabisch?", answers: ["Fajr", "Dhuhr", "Asr", "Isha"], correct: 1 },
-            { id: 205, level: 3, category: "islam", question: "In welchem Jahr der christlichen Zeitrechnung fand die Hidschra (Auswanderung) statt?", answers: ["570 n. Chr.", "610 n. Chr.", "622 n. Chr.", "632 n. Chr."], correct: 2 },
-
-            // --- SCHULE 2. KLASSE (IDs 301+) ---
-            { id: 301, level: 1, category: "klasse2", question: "Rechne aus: Was ergibt 12 + 7?", answers: ["15", "18", "19", "20"], correct: 2 },
-            { id: 302, level: 1, category: "klasse2", question: "Welches Wort reimt sich auf 'Maus'?", answers: ["Brot", "Haus", "Katze", "Milch"], correct: 1 },
-            { id: 303, level: 2, category: "klasse2", question: "Wie viele Monate hat ein ganzes Jahr?", answers: ["4 Monate", "10 Monate", "12 Monate", "24 Monate"], correct: 2 },
-            { id: 304, level: 2, category: "klasse2", question: "Rechne aus: Was ist 30 minus 12?", answers: ["16", "18", "20", "22"], correct: 1 },
-            { id: 305, level: 3, category: "klasse2", question: "Welches Tier legt Eier und ist kein Vogel?", answers: ["Fledermaus", "Krokodil", "Hund", "Delfin"], correct: 1 },
-
-            // --- SCHULE 4. KLASSE (IDs 401+) ---
-            { id: 401, level: 1, category: "klasse4", question: "Welches Wort ist ein Nomen (Substantiv)?", answers: ["schnell", "laufen", "Der Baum", "schön"], correct: 2 },
-            { id: 402, level: 1, category: "klasse4", question: "Mathe: Was ergibt 120 x 3?", answers: ["320", "360", "400", "420"], correct: 1 },
-            { id: 403, level: 2, category: "klasse4", question: "Welcher Fluss fließt durch Köln?", answers: ["Donau", "Elbe", "Rhein", "Weser"], correct: 2 },
-            { id: 404, level: 2, category: "klasse4", question: "Wie heißt die Hauptstadt von Frankreich?", answers: ["Madrid", "Paris", "Rom", "London"], correct: 1 },
-            { id: 405, level: 3, category: "klasse4", question: "Wie nennt man die sprachliche Vergangenheitsform (z.B. 'ich ging')?", answers: ["Präsens", "Perfekt", "Präteritum", "Futur I"], correct: 2 },
-
-            // --- KFZ MECHATRONIKER (IDs 501+) ---
-            { id: 501, level: 1, category: "kfz", question: "LF 2: Welches Prüfmittel eignet sich zum Messen von Ventilspiel?", answers: ["Fühlerlehre", "Messschieber", "Bügelmessschraube", "Messuhr"], correct: 0 },
-            { id: 502, level: 1, category: "kfz", question: "LF 3: Wie schaltet man ein Voltmeter zur Spannungsmessung?", answers: ["In Reihe", "Parallel", "In Brücke", "Als Shunt"], correct: 1 },
-            { id: 503, level: 2, category: "kfz", question: "LF 4: Was bedeutet die Reifenbezeichnung '91V'?", answers: ["Reifenbreite und Felgenbett", "Tragfähigkeitsindex und Geschwindigkeitsindex", "Herstellungsdatum", "Maximaler Reifendruck"], correct: 1 },
-            { id: 504, level: 3, category: "kfz", question: "LF 3: Welche Formel berechnet die elektrische Leistung (P)?", answers: ["P = U * I", "P = R * I", "P = U / I", "P = W * t"], correct: 0 }
+            { id: 101, category: "sprachen", question: "Was bedeutet 'Seni seviyorum'?", answers: ["Guten Appetit", "Ich liebe dich", "Gute Nacht", "Tschüss"], correct: 1 },
+            { id: 102, category: "sprachen", question: "Was bedeutet 'Baba' auf Türkisch?", answers: ["Opa", "Onkel", "Vater", "Bruder"], correct: 2 },
+            { id: 201, category: "islam", question: "Wer ist der letzte Gesandte im Islam?", answers: ["Ibrahim", "Isa", "Musa", "Muhammad"], correct: 3 },
+            { id: 301, category: "klasse2", question: "Was ergibt 12 + 7?", answers: ["15", "18", "19", "20"], correct: 2 },
+            { id: 401, category: "klasse4", question: "Mathe: Was ergibt 120 x 3?", answers: ["320", "360", "400", "420"], correct: 1 },
+            { id: 501, category: "kfz", question: "LF 2: Welches Prüfmittel misst das Ventilspiel?", answers: ["Fühlerlehre", "Messschieber", "Bügelmessschraube", "Messuhr"], correct: 0 }
         ];
 
         const firebaseConfig = {
@@ -111,295 +76,118 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let playerName = sessionStorage.getItem("current_quiz_player") || "Spieler";
+        let playerName = sessionStorage.getItem("current_quiz_player");
+        let settings = JSON.parse(sessionStorage.getItem("quiz_settings")) || { categories: ["sprachen"], mode: "spiel" };
         let currentPlayer = null;
-        let settings = JSON.parse(sessionStorage.getItem("quiz_settings")) || { categories: ["sprachen"], count: 5, timer: 30, speech: true, mode: "spiel" };
-
-        let quizQuestions = [];
         let currentQuestionIndex = 0;
-        let answered = false;
-        let correctAnswersCount = 0;
-        let wrongAnswersCount = 0;
-        let timerInterval;
-        let autoNextTimeout;
-        let timeLeft = 30;
-        let audioCtx;
+        let filteredQuestions = [];
 
-        // Variablen für adaptive Schwierigkeit
-        let correctStreak = 0;
-        let currentSessionDifficulty = 1;
+        let learningSeconds = 0;
+        let learningInterval;
+        const SECONDS_NEEDED_FOR_CHEST = 900; // 15 Min
 
-        function initAudio() {
-            if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-        }
-
-        function playTone(freq, type, duration, startTimeOffset = 0) {
-            initAudio();
-            setTimeout(() => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type; osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + duration);
-            }, startTimeOffset);
-        }
-
-        function playTickSound() { playTone(800, 'triangle', 0.03, 0); }
-        function playCorrectSound() { playTone(523.25, 'sine', 0.1, 0); playTone(659.25, 'sine', 0.15, 80); }
-        function playRararaSound() { let now = 0; for (let i = 0; i < 9; i++) { playTone(180 - (i * 5), 'sawtooth', 0.06, now); now += 70; } }
-        function playVictorySound() { playTone(523.25, 'sine', 0.12, 0); playTone(659.25, 'sine', 0.12, 120); playTone(783.99, 'sine', 0.12, 240); playTone(1046.50, 'sine', 0.4, 360); }
-        function playGameOverSound() { playTone(220.00, 'triangle', 0.2, 0); playTone(207.65, 'triangle', 0.2, 200); playTone(196.00, 'triangle', 0.4, 400); }
-
-        function readQuestionAloud(questionText) {
-            window.speechSynthesis.cancel();
-            if (!settings.speech) return;
-            let utterance = new SpeechSynthesisUtterance(questionText);
-            utterance.lang = 'de-DE';
-            utterance.rate = 0.95;
-            window.speechSynthesis.speak(utterance);
-        }
-
-        // Regen-Animationen
-        const canvas = document.getElementById('rain-canvas'); const ctx = canvas.getContext('2d');
-        let rainDrops = []; let rainAnimation;
-        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resizeCanvas); resizeCanvas();
-        function createRain() { rainDrops = []; for (let i = 0; i < 100; i++) { rainDrops.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height, length: Math.random() * 20 + 10, speed: Math.random() * 15 + 10 }); } }
-        function drawRain() { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.strokeStyle = 'rgba(174, 194, 224, 0.5)'; ctx.lineWidth = 2; ctx.lineCap = 'round'; rainDrops.forEach(drop => { ctx.beginPath(); ctx.moveTo(drop.x, drop.y); ctx.lineTo(drop.x, drop.y + drop.length); ctx.stroke(); drop.y += drop.speed; if (drop.y > canvas.height) { drop.y = -drop.length; drop.x = Math.random() * canvas.width; } }); rainAnimation = requestAnimationFrame(() => drawRain()); }
-        function startRain() { document.getElementById('rain-canvas').style.display = 'block'; createRain(); drawRain(); }
-        function stopRain() { document.getElementById('rain-canvas').style.display = 'none'; cancelAnimationFrame(rainAnimation); }
-        function clearStorm() { document.body.classList.remove('stormy'); document.getElementById('clouds').classList.remove('show'); stopRain(); }
-
-        function fetchAndStart() {
-            if (playerName.toLowerCase() === "admin") {
-                // Admin-Fallback
-                currentPlayer = { name: "Admin", difficulty: 1, learnedQuestions: {} };
-                buildQuizQuestions();
-                return;
+        db.ref("players/" + playerName.toLowerCase()).on("value", (snapshot) => {
+            currentPlayer = snapshot.val();
+            if (currentPlayer) {
+                document.getElementById("quiz-coins").innerText = currentPlayer.coins || 0;
+                if (!currentPlayer.unlockedHats) currentPlayer.unlockedHats = [];
+                if (!currentPlayer.unlockedGlasses) currentPlayer.unlockedGlasses = [];
             }
+        });
 
-            db.ref("players/" + playerName.toLowerCase()).once("value", (snapshot) => {
-                currentPlayer = snapshot.val();
-                if (!currentPlayer) {
-                    currentPlayer = { difficulty: 1, learnedQuestions: {} };
-                }
-                currentSessionDifficulty = currentPlayer.difficulty || 1;
-                buildQuizQuestions();
-            });
-        }
-
-        function buildQuizQuestions() {
-            // 1. Nach gewählten Kategorien filtern
-            let filtered = allQuestions.filter(q => settings.categories && settings.categories.includes(q.category));
-            if (filtered.length === 0) { filtered = allQuestions; }
-
-            // 2. LERNMODUS: Fragen weglassen, die bereits >= 3 Mal richtig gelöst wurden
-            if (settings.mode === "lernen" && currentPlayer.learnedQuestions) {
-                filtered = filtered.filter(q => {
-                    const correctCount = currentPlayer.learnedQuestions[q.id] || 0;
-                    return correctCount < 3; // Nur Fragen zeigen, die weniger als 3 Mal richtig gelöst wurden
-                });
-                // Fallback, falls alle Fragen weichgelöst sind
-                if (filtered.length === 0) {
-                    alert("Wahnsinn! Du hast alle Fragen dieser Kategorie gemeistert. Wir mischen sie zum Wiederholen wieder hinein!");
-                    filtered = allQuestions.filter(q => settings.categories && settings.categories.includes(q.category));
-                }
-            }
-
-            // 3. Dynamischer Schwierigkeitsfilter: 
-            // Bevorzuge Fragen, die dem aktuellen Spielerlevel (Level 1, 2 oder 3) entsprechen
-            let levelMatch = filtered.filter(q => q.level === currentSessionDifficulty);
-            if (levelMatch.length < 3) {
-                // Falls zu wenige auf dem exakten Level, nimm alle verfügbaren
-                levelMatch = filtered;
-            }
-
-            // Wild mischen (Zufall)
-            let shuffled = levelMatch.sort(() => 0.5 - Math.random());
-            let questionLimit = settings.count || 5;
-            quizQuestions = shuffled.slice(0, Math.min(questionLimit, shuffled.length));
-
+        function initQuiz() {
+            filteredQuestions = allQuestions.filter(q => settings.categories.includes(q.category));
+            if (filteredQuestions.length === 0) filteredQuestions = allQuestions;
             showQuestion();
+            if (settings.mode === "lernen") startLearningTimer();
         }
 
         function showQuestion() {
-            answered = false;
-            document.getElementById('next-btn').style.display = 'none';
-            clearStorm();
-            clearTimeout(autoNextTimeout);
+            let q = filteredQuestions[currentQuestionIndex];
+            document.getElementById("question-text").innerText = `[#${q.id}] ${q.question}`;
+            let container = document.getElementById("options-container");
+            container.innerHTML = "";
 
-            document.getElementById('question-counter').innerText = `Frage ${currentQuestionIndex + 1} von ${quizQuestions.length}`;
-
-            let currentQuestion = quizQuestions[currentQuestionIndex];
-
-            // Zeige Level-Badge an
-            document.getElementById('difficulty-badge').innerText = `Level ${currentQuestion.level}`;
-
-            // Zeige die eindeutige Nummer im Spieletitel für Admins/Verfolgung
-            document.getElementById('question').innerText = `[#${currentQuestion.id}] ${currentQuestion.question}`;
-
-            const btnBox = document.getElementById('answer-buttons');
-            btnBox.innerHTML = '';
-
-            currentQuestion.answers.forEach((answer, index) => {
-                const button = document.createElement('button');
-                button.innerText = answer;
-                button.classList.add('btn', `btn-${index}`);
-                button.addEventListener('click', () => selectAnswer(index));
-                btnBox.appendChild(button);
+            q.answers.forEach((ans, idx) => {
+                let btn = document.createElement("button");
+                btn.innerText = ans;
+                btn.style.cssText = "padding:15px; background:#1f4068; color:white; border:none; border-radius:10px; font-size:1.1rem; cursor:pointer;";
+                btn.onclick = () => handleAnswer(idx === q.correct);
+                container.appendChild(btn);
             });
+        }
 
-            readQuestionAloud(currentQuestion.question);
+        function handleAnswer(isCorrect) {
+            if (isCorrect && playerName.toLowerCase() !== "admin") {
+                let age = currentPlayer ? currentPlayer.age || 10 : 10;
+                let multiplier = age < 8 ? 5 : (age <= 10 ? 3 : (age <= 14 ? 2 : 1)); // FAIR-PLAY MULTIPLIKATOR
 
-            // Im Lernmodus gibt es KEINEN Timer
-            if (settings.mode === "lernen" || settings.timer === 999) {
-                document.getElementById('timer-box').style.display = "none";
-            } else {
-                document.getElementById('timer-box').style.display = "block";
-                startTimer();
+                db.ref("players/" + playerName.toLowerCase()).transaction((p) => {
+                    if (p) {
+                        p.coins = (p.coins || 0) + 10;
+                        p.rankPoints = (p.rankPoints || 0) + (1 * multiplier);
+                    }
+                    return p;
+                });
+                confetti({ particleCount: 50, spread: 50 });
             }
+            currentQuestionIndex = (currentQuestionIndex + 1) % filteredQuestions.length;
+            setTimeout(showQuestion, 600);
         }
 
-        function startTimer() {
-            clearInterval(timerInterval);
-            timeLeft = settings.timer || 30;
-            document.getElementById('timer-count').innerText = timeLeft;
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer-count').innerText = timeLeft;
-                if (timeLeft <= 5 && timeLeft > 0) { playTickSound(); }
-                if (timeLeft <= 0) { clearInterval(timerInterval); timeOut(); }
-            }, 1000);
+        function startLearningTimer() {
+            document.getElementById("learning-chest-bar").style.display = "block";
+            db.ref("players/" + playerName.toLowerCase() + "/learningProgress").once("value", (snapshot) => {
+                learningSeconds = snapshot.val() || 0;
+                updateChestDisplay();
+
+                learningInterval = setInterval(() => {
+                    learningSeconds++;
+                    updateChestDisplay();
+                    if (learningSeconds % 10 === 0) {
+                        db.ref("players/" + playerName.toLowerCase() + "/learningProgress").set(learningSeconds);
+                    }
+                    if (learningSeconds >= SECONDS_NEEDED_FOR_CHEST) {
+                        clearInterval(learningInterval);
+                        document.getElementById("chest-overlay").style.display = "flex";
+                    }
+                }, 1000);
+            });
         }
 
-        function triggerWrongEffects() {
-            window.speechSynthesis.cancel();
-            playRararaSound();
-            document.body.classList.add('stormy');
-            document.getElementById('clouds').classList.add('show');
-            startRain();
+        function updateChestDisplay() {
+            let remaining = Math.max(0, SECONDS_NEEDED_FOR_CHEST - learningSeconds);
+            let mins = Math.floor(remaining / 60);
+            let secs = remaining % 60;
+            document.getElementById("chest-timer-display").innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
-        function timeOut() {
-            if (answered) return;
-            answered = true;
-            wrongAnswersCount++;
-            correctStreak = 0; // Streak zurücksetzen bei Fehler
-            triggerWrongEffects();
+        function openChest() {
+            const epicHats = [{ id: "halo", label: "Heiligenschein 😇", emoji: "😇" }, { id: "ninja", label: "Ninja-Stirnband 🥷", emoji: "🥷" }];
+            let prize = epicHats[Math.floor(Math.random() * epicHats.length)];
 
-            const currentQuestion = quizQuestions[currentQuestionIndex];
-            const buttons = document.getElementsByClassName('btn');
-            for (let i = 0; i < buttons.length; i++) {
-                if (i === currentQuestion.correct) buttons[i].classList.add('correct');
-                else buttons[i].classList.add('fade');
-            }
-            document.getElementById('next-btn').style.display = 'inline-block';
-            autoNextTimeout = setTimeout(nextQuestion, 5000);
+            if (!currentPlayer.unlockedHats.includes(prize.id)) currentPlayer.unlockedHats.push(prize.id);
+            if (!currentPlayer.avatar) currentPlayer.avatar = {};
+            currentPlayer.avatar.hat = prize.emoji;
+
+            db.ref("players/" + playerName.toLowerCase()).set(currentPlayer);
+            db.ref("players/" + playerName.toLowerCase() + "/learningProgress").set(0);
+
+            document.getElementById("chest-emoji").style.display = "none";
+            document.getElementById("chest-instruction").style.display = "none";
+            document.getElementById("reward-emoji").innerText = prize.emoji;
+            document.getElementById("reward-name").innerText = prize.label;
+            document.getElementById("reward-display").style.display = "block";
+            confetti({ particleCount: 100, spread: 70 });
         }
 
-        function selectAnswer(selectedIndex) {
-            if (answered) return;
-            answered = true;
-            clearInterval(timerInterval);
-            window.speechSynthesis.cancel();
-
-            const currentQuestion = quizQuestions[currentQuestionIndex];
-            const buttons = document.getElementsByClassName('btn');
-
-            if (selectedIndex === currentQuestion.correct) {
-                correctAnswersCount++;
-                correctStreak++;
-                playCorrectSound();
-
-                // LERNMODUS: Richtig gelöste Frage in Firebase vermerken (+1)
-                if (settings.mode === "lernen" && playerName.toLowerCase() !== "admin") {
-                    if (!currentPlayer.learnedQuestions) currentPlayer.learnedQuestions = {};
-                    const currentCount = currentPlayer.learnedQuestions[currentQuestion.id] || 0;
-                    currentPlayer.learnedQuestions[currentQuestion.id] = currentCount + 1;
-
-                    db.ref("players/" + playerName.toLowerCase() + "/learnedQuestions/" + currentQuestion.id).set(currentCount + 1);
-                }
-
-                // Schwierigkeit dynamisch steigern
-                if (correctStreak >= 3 && currentSessionDifficulty < 3) {
-                    currentSessionDifficulty++;
-                    correctStreak = 0; // Zurücksetzen für nächste Stufe
-                }
-
-            } else {
-                correctStreak = 0; // Zurücksetzen bei falscher Antwort
-                wrongAnswersCount++;
-
-                // Schwierigkeit dynamisch senken bei Fehlern
-                if (currentSessionDifficulty > 1) {
-                    currentSessionDifficulty--;
-                }
-                triggerWrongEffects();
-            }
-
-            for (let i = 0; i < buttons.length; i++) {
-                if (i === currentQuestion.correct) buttons[i].classList.add('correct');
-                else if (i === selectedIndex) buttons[i].classList.add('wrong');
-                else buttons[i].classList.add('fade');
-            }
-            document.getElementById('next-btn').style.display = 'inline-block';
-            autoNextTimeout = setTimeout(nextQuestion, 5000);
+        function closeChestAndContinue() {
+            document.getElementById("chest-overlay").style.display = "none";
+            learningSeconds = 0;
+            startLearningTimer();
         }
 
-        function nextQuestion() {
-            window.speechSynthesis.cancel();
-            clearTimeout(autoNextTimeout);
-            currentQuestionIndex++;
-
-            if (currentQuestionIndex < quizQuestions.length) {
-                showQuestion();
-            } else {
-                clearInterval(timerInterval);
-                // Spielmodus zahlt Münzen aus, Lernmodus nur die Hälfte (da stressfrei)
-                let multiplier = (settings.mode === "spiel") ? 10 : 5;
-                let coinsWon = correctAnswersCount * multiplier;
-
-                if (playerName !== "Spieler" && playerName.toLowerCase() !== "admin") {
-                    // Update in Firebase (Coins + neue Schwierigkeit speichern)
-                    db.ref("players/" + playerName.toLowerCase()).transaction((player) => {
-                        if (player) {
-                            player.coins = (player.coins || 0) + coinsWon;
-                            player.difficulty = currentSessionDifficulty; // Speichere das neue Level
-                        }
-                        return player;
-                    }, () => {
-                        showResults(coinsWon);
-                    });
-                } else {
-                    showResults(coinsWon);
-                }
-            }
-        }
-
-        function showResults(coinsWon) {
-            document.getElementById("quiz-container").style.display = "none";
-            document.getElementById("result-screen").style.display = "block";
-            document.getElementById("score-correct").innerText = correctAnswersCount;
-            document.getElementById("score-wrong").innerText = wrongAnswersCount;
-            document.getElementById("won-coins").innerText = coinsWon;
-
-            // Feedback zur Schwierigkeit anzeigen
-            document.getElementById("difficulty-feedback").innerText = `Deine aktuelle Schwierigkeitsstufe: Level ${currentSessionDifficulty}`;
-
-            if (correctAnswersCount > wrongAnswersCount) {
-                playVictorySound();
-                document.getElementById("final-header").innerHTML = `<h2>Super gemacht! 🎉</h2>`;
-                confetti({ particleCount: 150, spread: 80 });
-            } else {
-                playGameOverSound();
-                document.getElementById("final-header").innerHTML = `<h2>Das geht besser! 🧐</h2>`;
-            }
-        }
-
-        window.onload = fetchAndStart;
+        window.onload = initQuiz;
     </script>
 </body>
 

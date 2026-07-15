@@ -4,12 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hauptmenü</title>
+    <title>Hauptmenü - Family Quizzz</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
-        /* Spezielle Styles für Admin-Bereich & Modi */
         .admin-panel {
             background-color: #1f4068;
             padding: 15px;
@@ -20,114 +19,102 @@
         }
 
         .admin-q-list {
-            max-height: 300px;
+            max-height: 250px;
             overflow-y: auto;
             background: #16213e;
             padding: 10px;
             border-radius: 8px;
             margin-top: 10px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .admin-q-item {
             border-bottom: 1px solid #333;
-            padding: 8px 0;
-        }
-
-        .mode-btn {
-            border: 2px solid #ff6b81 !important;
-        }
-
-        .mode-btn.active {
-            background-color: #ff6b81 !important;
+            padding: 6px 0;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="container" id="start-screen">
-        <!-- ADMIN BEREICH (Wird nur für Admin eingeblendet) -->
+    <div class="container">
+        <!-- ADMIN PANEL -->
         <div id="admin-box" class="admin-panel" style="display: none;">
             <h2 style="margin-top: 0; color: #ffd700;">👨‍🔧 Admin-Kontrollzentrum</h2>
-            <p style="font-size: 0.85rem; color: #aaa;">Hier siehst du alle nummerierten Fragen im aktuellen System:</p>
+            <p style="font-size: 0.85rem; color: #aaa;">Alle nummerierten Fragen im System:</p>
             <div class="admin-q-list" id="admin-questions-container">Lade Fragen...</div>
         </div>
 
-        <div class="user-profile-header">
-            <div class="profile-avatar-mini" id="mini-avatar">🧑</div>
-            <div>
-                <span id="welcome-text" style="font-weight: bold; font-size: 1.4rem; color: #ff6b81;">Lade...</span><br>
-                <span style="color: #ffd700; font-weight: bold;">🪙 <span id="menu-coins">0</span> Coins</span>
-                <span id="user-age-tag" style="margin-left: 10px; color:#aaa; font-size:0.85rem;"></span>
+        <!-- HEADER -->
+        <div class="user-profile-header"
+            style="display: flex; align-items: center; justify-content: space-between; background: #16213e; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div id="mini-avatar" style="font-size: 2rem;">🧑</div>
+                <div>
+                    <span id="welcome-text"
+                        style="font-weight: bold; font-size: 1.2rem; color: #ff6b81;">Lade...</span><br>
+                    <span style="color: #ffd700; font-weight: bold;">🪙 <span id="menu-coins">0</span> Coins</span>
+                    <span id="user-age-tag" style="margin-left: 5px; color:#aaa; font-size:0.8rem;"></span>
+                </div>
             </div>
-            <button class="logout-btn" style="background-color:#1368ce; margin-left:10px;" id="shop-btn"
-                onclick="goToAvatar()">Avatar Shop 🎨</button>
-            <button class="logout-btn" onclick="logout()">Abmelden 🔄</button>
+            <div style="display: flex; gap: 5px;">
+                <button
+                    style="background-color:#555; padding: 8px 10px; border-radius: 8px; color: white; border: none; cursor: pointer;"
+                    onclick="window.location.href='profile.html'">Profil ⚙️</button>
+                <button
+                    style="background-color:#1368ce; padding: 8px 10px; border-radius: 8px; color: white; border: none; cursor: pointer;"
+                    id="shop-btn" onclick="window.location.href='avatar.html'">Shop 🎨</button>
+                <button
+                    style="background-color:#e94560; padding: 8px 10px; border-radius: 8px; color: white; border: none; cursor: pointer;"
+                    onclick="logout()">Abmelden 🔄</button>
+            </div>
+        </div>
+
+        <!-- RANGLISTE (FAIR-PLAY-SYSTEM) -->
+        <div class="setup-section"
+            style="background-color: #1a1a2e; padding: 15px; border-radius: 12px; border: 2px solid #ffd700; margin-bottom: 20px;">
+            <div class="setup-title" style="color: #ffd700; text-align: center; margin-bottom: 2px;">🏆
+                Familien-Bestenliste 🏆</div>
+            <p style="text-align: center; font-size: 0.75rem; color: #aaa; margin-top: 0;">(Faire Alters-Punkte: Jüngere
+                bekommen mehr Sterne pro Frage!)</p>
+            <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">Lade
+                Rangliste...</div>
         </div>
 
         <!-- MODUS WÄHLEN -->
         <div class="setup-section">
-            <div class="setup-title">A. Spiel-Modus wählen 🎮</div>
-            <div class="option-group">
-                <button class="opt-btn mode-btn active" id="mode-play" onclick="setGameMode('spiel')">🏆 Spiel-Modus
-                    (Coins & Zeit)</button>
-                <button class="opt-btn mode-btn" id="mode-learn" onclick="setGameMode('lernen')">📖 Lern-Modus
-                    (Stressfrei & Merken)</button>
+            <div class="setup-title">1. Spiel-Modus wählen 🎮</div>
+            <div class="option-group" style="display: flex; gap: 10px; margin-top: 8px;">
+                <button class="opt-btn active" id="mode-play" onclick="setGameMode('spiel')"
+                    style="flex: 1; padding: 12px; border-radius: 8px; border: 2px solid #ff6b81; background: #ff6b81; color: white; font-weight: bold; cursor: pointer;">🏆
+                    Spiel-Modus (Coins & Zeit)</button>
+                <button class="opt-btn" id="mode-learn" onclick="setGameMode('lernen')"
+                    style="flex: 1; padding: 12px; border-radius: 8px; border: 2px solid #26890c; background: #16213e; color: white; font-weight: bold; cursor: pointer;">📖
+                    Lern-Modus (15m Kisten)</button>
             </div>
-            <p id="mode-info-text" style="font-size:0.8rem; color:#aaa; margin-top:8px;">Spiel-Modus: Beantworte Fragen
-                gegen die Zeit und verdiene Coins!</p>
         </div>
 
-        <div class="setup-section">
-            <div class="setup-title">1. Was wollt ihr heute lernen? (Kategorien) 🎒</div>
-            <div class="option-group">
-                <button class="opt-btn cat-btn" id="cat-sprachen" onclick="toggleCategory('sprachen')">🗣️
+        <!-- KATEGORIEN WÄHLEN -->
+        <div class="setup-section" style="margin-top: 15px;">
+            <div class="setup-title">2. Themen-Kategorien 🎒</div>
+            <div class="option-group" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                <button class="opt-btn cat-btn active" id="cat-sprachen" onclick="toggleCategory('sprachen')">🗣️
                     Sprachen</button>
                 <button class="opt-btn cat-btn" id="cat-islam" onclick="toggleCategory('islam')">🕌 Islam</button>
-                <button class="opt-btn cat-btn" id="cat-hauptstaedte" onclick="toggleCategory('hauptstaedte')">🗺️
-                    Hauptstädte</button>
-                <button class="opt-btn cat-btn" id="cat-filme" onclick="toggleCategory('filme')">🎬 Filme</button>
-                <button class="opt-btn cat-btn" id="cat-buecher" onclick="toggleCategory('buecher')">📚
-                    Kinderbücher</button>
-                <button class="opt-btn cat-btn" style="border-color:#26890c;" id="cat-klasse2"
-                    onclick="toggleCategory('klasse2')">🏫 2. Klasse</button>
-                <button class="opt-btn cat-btn" style="border-color:#26890c;" id="cat-klasse4"
-                    onclick="toggleCategory('klasse4')">🏫 4. Klasse</button>
-                <button class="opt-btn cat-btn" style="border-color:#ffd700;" id="cat-kfz"
-                    onclick="toggleCategory('kfz')">🔧 KFZ Lernfeld 1-4</button>
-                <button class="opt-btn cat-btn" style="border-color:#ff6b81;" id="cat-politik"
-                    onclick="toggleCategory('politik')">🏛️ Politik</button>
-                <button class="opt-btn cat-btn" style="border-color:#ff6b81;" id="cat-fussball"
-                    onclick="toggleCategory('fussball')">⚽ Fußball</button>
-                <button class="opt-btn cat-btn" style="border-color:#ff6b81;" id="cat-mode"
-                    onclick="toggleCategory('mode')">👗 Mode</button>
-                <button class="opt-btn cat-btn" style="border-color:#ff6b81;" id="cat-erdkunde"
-                    onclick="toggleCategory('erdkunde')">🌍 Erdkunde</button>
+                <button class="opt-btn cat-btn" id="cat-klasse2" onclick="toggleCategory('klasse2')">🏫 2.
+                    Klasse</button>
+                <button class="opt-btn cat-btn" id="cat-klasse4" onclick="toggleCategory('klasse4')">🏫 4.
+                    Klasse</button>
+                <button class="opt-btn cat-btn" id="cat-kfz" onclick="toggleCategory('kfz')">🔧 KFZ Lernfeld
+                    1-4</button>
             </div>
         </div>
 
-        <div class="setup-section" id="timer-setup-section">
-            <div class="setup-title">2. Countdown-Geschwindigkeit</div>
-            <div class="option-group">
-                <button class="opt-btn active" id="mode-30" onclick="setTimerMode(30)">Normal (30s)</button>
-                <button class="opt-btn" id="mode-5" onclick="setTimerMode(5)">⚡ Blitz (5s!)</button>
-            </div>
-        </div>
-
-        <div class="setup-section">
-            <div class="setup-title">3. Fragen vorlesen lassen? 🔊</div>
-            <div class="option-group">
-                <button class="opt-btn active" id="speech-on" onclick="setSpeechMode(true)">🔊 Vorlesen: AN</button>
-                <button class="opt-btn" id="speech-off" onclick="setSpeechMode(false)">🔇 Vorlesen: AUS</button>
-            </div>
-        </div>
-
-        <button id="start-play-btn" onclick="startQuiz()">Spiel starten! 🚀</button>
+        <button onclick="startQuiz()"
+            style="background: #26890c; color: white; padding: 18px; font-size: 1.3rem; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px;">Spiel
+            starten! 🚀</button>
     </div>
 
-    <!-- Admin Template Script damit wir die Fragenliste im Adminbereich laden können -->
-    <script src="questions.js"></script> <!-- Wir binden die Fragen logisch ein -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
@@ -144,193 +131,113 @@
 
         let playerName = sessionStorage.getItem("current_quiz_player");
         let currentPlayer = null;
-
-        let selectedCategories = [];
-        let chosenCount = 10; // Standardfragenanzahl erhöht
-        let chosenTimer = 30;
-        let speechEnabled = true;
-        let gameMode = "spiel"; // spiel oder lernen
-        let audioCtx;
-
-        function initAudio() {
-            if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-        }
-
-        function playTone(freq, type, duration, startTimeOffset = 0) {
-            initAudio();
-            setTimeout(() => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type; osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + duration);
-            }, startTimeOffset);
-        }
-
-        function playClickSound() { playTone(600, 'sine', 0.05, 0); }
-        function playStartGameSound() { playTone(440, 'sine', 0.1, 0); playTone(554, 'sine', 0.1, 100); playTone(659, 'sine', 0.1, 200); playTone(880, 'sine', 0.3, 300); }
+        let selectedCategories = ["sprachen"];
+        let gameMode = "spiel";
 
         function initMenu() {
             if (!playerName) { window.location.href = "index.html"; return; }
 
             if (playerName.toLowerCase() === "admin") {
-                // Zeige Admin-Bereich
                 document.getElementById("admin-box").style.display = "block";
-                document.getElementById("welcome-text").innerText = "Hallo, Chef (Admin)!";
+                document.getElementById("welcome-text").innerText = "Chef (Admin)";
                 document.getElementById("mini-avatar").innerText = "⚙️";
                 document.getElementById("shop-btn").style.display = "none";
-                loadAdminQuestions();
-                // Fallback für Admin Kategorien
-                selectedCategories = ["sprachen"];
-                updateCategoryButtons();
-                return;
-            }
-
-            db.ref("players/" + playerName.toLowerCase()).on("value", (snapshot) => {
-                currentPlayer = snapshot.val();
-                if (!currentPlayer) return;
-
-                document.getElementById("welcome-text").innerText = `Hallo, ${currentPlayer.name}!`;
-                document.getElementById("menu-coins").innerText = currentPlayer.coins;
-                document.getElementById("user-age-tag").innerText = `(${currentPlayer.age} Jahre)`;
-
-                // AUTOMATISCHE STEUERUNG FÜR UNTER 9-JÄHRIGE
-                if (currentPlayer.age && currentPlayer.age < 9) {
-                    document.getElementById("timer-setup-section").style.display = "none"; // Timer-Auswahl ausblenden
-                    chosenTimer = 999; // Extrem hoher Timer = praktisch deaktiviert
-                } else {
-                    document.getElementById("timer-setup-section").style.display = "block";
-                }
-
-                // Gelesene Kategorien des Spielers laden (Falls keine vorhanden, nur die erste "sprachen" wählen)
-                selectedCategories = currentPlayer.lastCategories || ["sprachen"];
-                updateCategoryButtons();
-
-                document.getElementById("mini-avatar").innerHTML = `
-                <span>${currentPlayer.avatar.base}</span>
-                <span style="position:absolute; top:-12px; left:0; width:100%; text-align:center; font-size:2rem; z-index:4;">${currentPlayer.avatar.hat || ''}</span>
-                <span style="position:absolute; top:4px; left:0; width:100%; text-align:center; font-size:1.5rem; z-index:3;">${currentPlayer.avatar.glasses || ''}</span>
-            `;
-            });
-        }
-
-        function updateCategoryButtons() {
-            const buttons = document.querySelectorAll('.cat-btn');
-            buttons.forEach(btn => {
-                const catId = btn.id.replace('cat-', '');
-                if (selectedCategories.includes(catId)) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-        }
-
-        function toggleCategory(category) {
-            playClickSound();
-            const idx = selectedCategories.indexOf(category);
-            const btn = document.getElementById('cat-' + category);
-            if (idx > -1) {
-                if (selectedCategories.length > 1) {
-                    selectedCategories.splice(idx, 1);
-                    btn.classList.remove('active');
-                }
             } else {
-                selectedCategories.push(category);
-                btn.classList.add('active');
-            }
+                db.ref("players/" + playerName.toLowerCase()).on("value", (snapshot) => {
+                    currentPlayer = snapshot.val();
+                    if (!currentPlayer) return;
 
-            // Auswahl direkt in Firebase speichern für diesen Spieler
-            if (currentPlayer && playerName.toLowerCase() !== "admin") {
-                db.ref("players/" + playerName.toLowerCase()).update({
-                    lastCategories: selectedCategories
+                    document.getElementById("welcome-text").innerText = currentPlayer.name;
+                    document.getElementById("menu-coins").innerText = currentPlayer.coins || 0;
+                    document.getElementById("user-age-tag").innerText = `(${currentPlayer.age || '?'} J.)`;
+
+                    selectedCategories = currentPlayer.lastCategories || ["sprachen"];
+                    updateCategoryButtons();
+
+                    let base = currentPlayer.avatar ? currentPlayer.avatar.base || "🧑" : "🧑";
+                    let hat = currentPlayer.avatar ? currentPlayer.avatar.hat || "" : "";
+                    let glasses = currentPlayer.avatar ? currentPlayer.avatar.glasses || "" : "";
+                    document.getElementById("mini-avatar").innerText = `${base}${hat}${glasses}`;
                 });
             }
+            loadLeaderboard();
+        }
+
+        function loadLeaderboard() {
+            db.ref("players").orderByChild("rankPoints").on("value", (snapshot) => {
+                const leaderboardContainer = document.getElementById("leaderboard-list");
+                leaderboardContainer.innerHTML = "";
+                let playersArray = [];
+
+                snapshot.forEach((childSnapshot) => {
+                    let p = childSnapshot.val();
+                    if (p.name && p.name.toLowerCase() !== "admin") { playersArray.push(p); }
+                });
+
+                playersArray.sort((a, b) => (b.rankPoints || 0) - (a.rankPoints || 0));
+                const medals = ["🥇", "🥈", "🥉"];
+
+                playersArray.forEach((player, index) => {
+                    let rankBadge = medals[index] || `#${index + 1}`;
+                    let row = document.createElement("div");
+                    row.style.cssText = `display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:${index === 0 ? '#2a2400' : '#16213e'}; border:1px solid ${index === 0 ? '#ffd700' : '#1368ce'}; border-radius:8px; font-weight:bold;`;
+
+                    let base = player.avatar ? player.avatar.base || "🧑" : "🧑";
+                    let hat = player.avatar ? player.avatar.hat || "" : "";
+                    let glasses = player.avatar ? player.avatar.glasses || "" : "";
+
+                    row.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span>${rankBadge}</span>
+                        <span style="font-size:1.3rem;">${base}${hat}${glasses}</span>
+                        <div>
+                            <span style="color:white; font-size:0.95rem;">${player.name}</span>
+                            <span style="font-size:0.7rem; color:#aaa; display:block;">(${player.age || '?'} J.)</span>
+                        </div>
+                    </div>
+                    <div style="color:#ffd700; font-size:1rem;">⭐ ${player.rankPoints || 0} Pkt.</div>
+                `;
+                    leaderboardContainer.appendChild(row);
+                });
+            });
         }
 
         function setGameMode(mode) {
-            playClickSound();
             gameMode = mode;
-            document.getElementById("mode-play").classList.remove("active");
-            document.getElementById("mode-learn").classList.remove("active");
+            document.getElementById("mode-play").style.background = mode === 'spiel' ? '#ff6b81' : '#16213e';
+            document.getElementById("mode-learn").style.background = mode === 'lernen' ? '#26890c' : '#16213e';
+        }
 
-            if (mode === "spiel") {
-                document.getElementById("mode-play").classList.add("active");
-                document.getElementById("mode-info-text").innerText = "Spiel-Modus: Beantworte Fragen gegen die Zeit und verdiene Coins!";
-                if (currentPlayer && currentPlayer.age >= 9) {
-                    document.getElementById("timer-setup-section").style.display = "block";
+        function toggleCategory(cat) {
+            const idx = selectedCategories.indexOf(cat);
+            if (idx > -1) {
+                if (selectedCategories.length > 1) selectedCategories.splice(idx, 1);
+            } else {
+                selectedCategories.push(cat);
+            }
+            updateCategoryButtons();
+            if (currentPlayer && playerName.toLowerCase() !== "admin") {
+                db.ref("players/" + playerName.toLowerCase()).update({ lastCategories: selectedCategories });
+            }
+        }
+
+        function updateCategoryButtons() {
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                const catId = btn.id.replace('cat-', '');
+                if (selectedCategories.includes(catId)) {
+                    btn.style.background = '#1368ce'; btn.style.color = 'white';
+                } else {
+                    btn.style.background = '#16213e'; btn.style.color = '#aaa';
                 }
-            } else {
-                document.getElementById("mode-learn").classList.add("active");
-                document.getElementById("mode-info-text").innerText = "Lern-Modus: Kein Timer. Richtig beantwortete Fragen werden irgendwann ausgeblendet!";
-                document.getElementById("timer-setup-section").style.display = "none";
-            }
+            });
         }
-
-        function setSpeechMode(status) {
-            playClickSound();
-            speechEnabled = status;
-            if (status) {
-                document.getElementById('speech-on').classList.add('active');
-                document.getElementById('speech-off').classList.remove('active');
-            } else {
-                document.getElementById('speech-on').classList.remove('active');
-                document.getElementById('speech-off').classList.add('active');
-            }
-        }
-
-        function setTimerMode(seconds) {
-            playClickSound();
-            chosenTimer = seconds;
-            document.getElementById('mode-30').classList.remove('active');
-            document.getElementById('mode-5').classList.remove('active');
-            document.getElementById('mode-' + seconds).classList.add('active');
-        }
-
-        function loadAdminQuestions() {
-            const container = document.getElementById("admin-questions-container");
-            container.innerHTML = "";
-
-            // allQuestions wird aus quiz.html bzw global geladen
-            if (typeof allQuestions !== "undefined" && allQuestions.length > 0) {
-                allQuestions.forEach(q => {
-                    const item = document.createElement("div");
-                    item.className = "admin-q-item";
-                    item.innerHTML = `
-                    <strong>[Frage #${q.id}]</strong> [${q.category.toUpperCase()} - Lvl ${q.level}] 
-                    <span style="color: #ff6b81;">${q.question}</span><br>
-                    <span style="color: #aaa; font-size:0.8rem;">Antworten: 1: ${q.answers[0]} | 2: ${q.answers[1]} | 3: ${q.answers[2]} | 4: ${q.answers[3]}</span><br>
-                    <span style="color: #26890c; font-size:0.8rem; font-weight:bold;">Richtige Antwort: Option ${q.correct + 1} (${q.answers[q.correct]})</span>
-                `;
-                    container.appendChild(item);
-                });
-            } else {
-                container.innerText = "Fragen-Skript lädt. Starte die App einmal über index.html neu.";
-            }
-        }
-
-        document.addEventListener('click', function () {
-            try { window.speechSynthesis.speak(new SpeechSynthesisUtterance("")); } catch (e) { }
-        }, { once: true });
 
         function startQuiz() {
-            playStartGameSound();
-            sessionStorage.setItem("quiz_settings", JSON.stringify({
-                categories: selectedCategories,
-                count: chosenCount,
-                timer: chosenTimer,
-                speech: speechEnabled,
-                mode: gameMode
-            }));
-            setTimeout(() => { window.location.href = "quiz.html"; }, 400);
+            sessionStorage.setItem("quiz_settings", JSON.stringify({ categories: selectedCategories, mode: gameMode }));
+            window.location.href = "quiz.html";
         }
 
-        function goToAvatar() { playClickSound(); setTimeout(() => { window.location.href = "avatar.html"; }, 100); }
-        function logout() { playClickSound(); sessionStorage.clear(); setTimeout(() => { window.location.href = "index.html"; }, 100); }
-
+        function logout() { sessionStorage.clear(); window.location.href = "index.html"; }
         window.onload = initMenu;
     </script>
 </body>

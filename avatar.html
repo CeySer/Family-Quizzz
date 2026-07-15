@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avatar Creator</title>
+    <title>Avatar Shop - Family Quizzz</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -12,59 +12,27 @@
 
 <body>
 
-    <div class="container" id="avatar-screen">
-        <div class="header-bar">
-            <div id="avatar-timer" style="color: #26890c; font-size: 1.1rem;">✨ Lass dir Zeit beim Stylen! ✨</div>
-            <div id="player-coin-display">🪙 <span id="current-coins">0</span> Coins</div>
+    <div class="container" style="text-align: center;">
+        <h2 style="color: #ff6b81;">Avatar Shop 🎨</h2>
+
+        <div id="preview-avatar"
+            style="font-size: 5rem; margin: 15px 0; background: #16213e; padding: 20px; border-radius: 15px;">🧑</div>
+        <p style="color: #ffd700; font-size: 1.2rem; font-weight: bold;">🪙 Deine Coins: <span id="shop-coins">0</span>
+        </p>
+
+        <h3 style="color: #1368ce; margin-top: 20px;">Hüte & Kopfbedeckungen</h3>
+        <div id="hats-shop-grid"
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px;">
         </div>
 
-        <div class="avatar-creator-layout">
-            <div class="avatar-preview-box">
-                <h2 id="creator-title">Dein Avatar 🎨</h2>
-                <div class="avatar-display">
-                    <div class="avatar-part avatar-head" id="char-base">🧑</div>
-                    <div class="avatar-part avatar-torso">👕</div>
-                    <div class="avatar-part avatar-legs">👖</div>
-                    <div class="avatar-part" id="char-hat"
-                        style="position: absolute; top: -55px; font-size: 5.5rem; z-index: 10;"></div>
-                    <div class="avatar-part" id="char-glasses"
-                        style="position: absolute; top: 10px; font-size: 4rem; z-index: 5;"></div>
-                </div>
-                <button id="save-avatar-btn" onclick="saveAndGoToMenu()">Fertig & zum Menü ➔</button>
-            </div>
-
-            <div class="avatar-options-box">
-                <div class="shop-tabs">
-                    <button class="tab-btn active" id="tab-base" onclick="switchShopTab('base')">Körper</button>
-                    <button class="tab-btn" id="tab-hats" onclick="switchShopTab('hats')">Hüte</button>
-                    <button class="tab-btn" id="tab-glasses" onclick="switchShopTab('glasses')">Brillen</button>
-                </div>
-
-                <div class="tab-content" id="content-base">
-                    <h3>Wähle dein Gesicht:</h3>
-                    <div class="shop-grid">
-                        <button class="shop-item" onclick="selectBase('🧑')">🧑 Junge</button>
-                        <button class="shop-item" onclick="selectBase('👧')">👧 Mädchen</button>
-                        <button class="shop-item" onclick="selectBase('👽')">👽 Alien</button>
-                        <button class="shop-item" onclick="selectBase('🤖')">🤖 Roboter</button>
-                        <button class="shop-item" onclick="selectBase('🦁')">🦁 Löwe</button>
-                        <button class="shop-item" onclick="selectBase('🐱')">🐱 Katze</button>
-                        <button class="shop-item" onclick="selectBase('🐼')">🐼 Panda</button>
-                        <button class="shop-item" onclick="selectBase('🦄')">🦄 Einhorn</button>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="content-hats" style="display: none;">
-                    <h3>Hüte freischalten:</h3>
-                    <div class="shop-grid" id="hats-shop-grid"></div>
-                </div>
-
-                <div class="tab-content" id="content-glasses" style="display: none;">
-                    <h3>Brillen freischalten:</h3>
-                    <div class="shop-grid" id="glasses-shop-grid"></div>
-                </div>
-            </div>
+        <h3 style="color: #1368ce;">Brillen & Accessoires</h3>
+        <div id="glasses-shop-grid"
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px;">
         </div>
+
+        <button onclick="window.location.href='menu.html'"
+            style="background: #e94560; color: white; padding: 12px 25px; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; width: 100%;">Zurück
+            zum Hauptmenü 🔙</button>
     </div>
 
     <script>
@@ -80,111 +48,81 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        let playerName = sessionStorage.getItem("current_quiz_player");
+        let currentPlayer = null;
 
         const shopHats = [
             { id: "cap", label: "Basecap 🧢", price: 20, emoji: "🧢" },
             { id: "wizard", label: "Magierhut 🧙", price: 80, emoji: "🧙" },
             { id: "crown", label: "Goldene Krone 👑", price: 150, emoji: "👑" },
             { id: "cowboy", label: "Cowboyhut 🤠", price: 50, emoji: "🤠" },
-            { id: "chef", label: "Kochmütze 👨‍🍳", price: 40, emoji: "👨‍🍳" },
-            { id: "pirate", label: "Piraten-Tuch 🏴‍☠️", price: 70, emoji: "🏴‍☠️" },
-            { id: "santa", label: "Weihnachtsmütze 🎅", price: 30, emoji: "🎅" },
-            { id: "tophat", label: "Zylinder-Hut 🎩", price: 100, emoji: "🎩" },
             { id: "helmet", label: "KFZ-Helm 🪖", price: 60, emoji: "🪖" },
-            { id: "tiara", label: "Prinzessin-Tiara 👑", price: 130, emoji: "✨" }
+            { id: "halo", label: "Heiligenschein 😇", price: "epic", emoji: "😇" },
+            { id: "detective", label: "Detektiv-Hut 🕵️", price: "epic", emoji: "🕵️" },
+            { id: "devil", label: "Teufelshörner 😈", price: "epic", emoji: "😈" },
+            { id: "ninja", label: "Ninja-Stirnband 🥷", price: "epic", emoji: "🥷" }
         ];
 
         const shopGlasses = [
             { id: "sun", label: "Sonnenbrille 😎", price: 30, emoji: "🕶️" },
-            { id: "monocle", label: "Monokel 🧐", price: 70, emoji: "🧐" },
-            { id: "stars", label: "Sternenbrille ⭐", price: 110, emoji: "⭐" },
             { id: "nerd", label: "Nerdbrille 🤓", price: 20, emoji: "🤓" },
             { id: "heart", label: "Herzchenbrille ❤️", price: 90, emoji: "❤️" },
-            { id: "disguise", label: "Masken-Brille 🥸", price: 50, emoji: "🥸" },
-            { id: "3d", label: "Kino-3D-Brille 🕶️", price: 40, emoji: "🥽" }
+            { id: "laser", label: "Laser-Brille ⚡", price: "epic", emoji: "⚡" },
+            { id: "pirate_eye", label: "Augenklappe 🏴‍☠️", price: "epic", emoji: "👁️‍🗨️" },
+            { id: "vr", label: "VR-Brille 🕶️", price: "epic", emoji: "🥽" }
         ];
 
-        let playerName = sessionStorage.getItem("current_quiz_player");
-        let currentPlayer = null;
-        let audioCtx;
-
-        function initAudio() {
-            if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-        }
-
-        function playTone(freq, type, duration, startTimeOffset = 0) {
-            initAudio();
-            setTimeout(() => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type; osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + duration);
-            }, startTimeOffset);
-        }
-
-        function playClickSound() { playTone(600, 'sine', 0.05, 0); }
-        function playCorrectSound() { playTone(523.25, 'sine', 0.1, 0); playTone(659.25, 'sine', 0.15, 80); }
-        function playRararaSound() { let now = 0; for (let i = 0; i < 9; i++) { playTone(180 - (i * 5), 'sawtooth', 0.06, now); now += 70; } }
-
-        function fetchPlayerData() {
-            db.ref("players/" + playerName.toLowerCase()).once("value", (snapshot) => {
-                currentPlayer = snapshot.val();
-                if (!currentPlayer.unlockedHats) currentPlayer.unlockedHats = ["cap"];
-                if (!currentPlayer.unlockedGlasses) currentPlayer.unlockedGlasses = ["nerd"];
-
-                document.getElementById("creator-title").innerText = `${currentPlayer.name}s Avatar 🎨`;
-                document.getElementById("current-coins").innerText = currentPlayer.coins;
+        db.ref("players/" + playerName.toLowerCase()).on("value", (snapshot) => {
+            currentPlayer = snapshot.val();
+            if (currentPlayer) {
+                if (!currentPlayer.unlockedHats) currentPlayer.unlockedHats = [];
+                if (!currentPlayer.unlockedGlasses) currentPlayer.unlockedGlasses = [];
+                document.getElementById("shop-coins").innerText = currentPlayer.coins || 0;
                 updatePreview();
                 renderShop();
-            });
-        }
+            }
+        });
 
         function updatePreview() {
-            document.getElementById("char-base").innerText = currentPlayer.avatar.base;
-            document.getElementById("char-hat").innerText = currentPlayer.avatar.hat || '';
-            document.getElementById("char-glasses").innerText = currentPlayer.avatar.glasses || '';
-        }
-
-        function selectBase(emoji) { playClickSound(); currentPlayer.avatar.base = emoji; updatePreview(); }
-        function equipItem(type, emoji) { playClickSound(); if (type === 'hat') currentPlayer.avatar.hat = emoji; else currentPlayer.avatar.glasses = emoji; updatePreview(); }
-
-        function switchShopTab(tab) {
-            playClickSound();
-            document.getElementById("tab-base").classList.remove("active");
-            document.getElementById("tab-hats").classList.remove("active");
-            document.getElementById("tab-glasses").classList.remove("active");
-            document.getElementById("content-base").style.display = "none";
-            document.getElementById("content-hats").style.display = "none";
-            document.getElementById("content-glasses").style.display = "none";
-            document.getElementById("tab-" + tab).classList.add("active");
-            document.getElementById("content-" + tab).style.display = "block";
+            let base = currentPlayer.avatar ? currentPlayer.avatar.base || "🧑" : "🧑";
+            let hat = currentPlayer.avatar ? currentPlayer.avatar.hat || "" : "";
+            let glasses = currentPlayer.avatar ? currentPlayer.avatar.glasses || "" : "";
+            document.getElementById("preview-avatar").innerText = `${base}${hat}${glasses}`;
         }
 
         function renderShop() {
             const hatsGrid = document.getElementById("hats-shop-grid");
             const glassesGrid = document.getElementById("glasses-shop-grid");
-            hatsGrid.innerHTML = `<button class="shop-item" onclick="equipItem('hat', '')">❌ Kein Hut</button>`;
-            glassesGrid.innerHTML = `<button class="shop-item" onclick="equipItem('glasses', '')">❌ Keine Brille</button>`;
+            hatsGrid.innerHTML = `<button style="padding:10px; background:#1f4068; color:white; border:none; border-radius:8px; cursor:pointer;" onclick="equipItem('hat', '')">❌ Kein Hut</button>`;
+            glassesGrid.innerHTML = `<button style="padding:10px; background:#1f4068; color:white; border:none; border-radius:8px; cursor:pointer;" onclick="equipItem('glasses', '')">❌ Keine Brille</button>`;
 
             shopHats.forEach(item => {
                 const isUnlocked = currentPlayer.unlockedHats.includes(item.id);
                 const btn = document.createElement("button");
-                btn.className = `shop-item ${isUnlocked ? 'unlocked' : 'locked'}`;
-                btn.innerHTML = isUnlocked ? `${item.label}<br><span style="color:#26890c;font-size:0.8rem;">Auswählen</span>` : `${item.label}<br><span style="color:#ffd700;font-size:0.8rem;">🪙 ${item.price}</span>`;
-                btn.onclick = () => isUnlocked ? equipItem('hat', item.emoji) : buyItem('hat', item);
+                btn.style.cssText = `padding:10px; border-radius:8px; cursor:pointer; color:white; background:${isUnlocked ? '#1f4068' : '#0f3460'}; border:${item.price === 'epic' ? '2px solid #ffd700' : '1px solid #333'}`;
+
+                if (item.price === "epic") {
+                    btn.innerHTML = isUnlocked ? `${item.label}<br><span style="color:#26890c;font-size:0.75rem;">Auswählen</span>` : `${item.label}<br><span style="color:#ffd700;font-size:0.75rem;">⭐ EPISCH (Kiste)</span>`;
+                    btn.onclick = () => isUnlocked ? equipItem('hat', item.emoji) : alert("Dieses epische Item gibt es nur aus Lern-Schatzkisten!");
+                } else {
+                    btn.innerHTML = isUnlocked ? `${item.label}<br><span style="color:#26890c;font-size:0.75rem;">Auswählen</span>` : `${item.label}<br><span style="color:#ffd700;font-size:0.75rem;">🪙 ${item.price}</span>`;
+                    btn.onclick = () => isUnlocked ? equipItem('hat', item.emoji) : buyItem('hat', item);
+                }
                 hatsGrid.appendChild(btn);
             });
 
             shopGlasses.forEach(item => {
                 const isUnlocked = currentPlayer.unlockedGlasses.includes(item.id);
                 const btn = document.createElement("button");
-                btn.className = `shop-item ${isUnlocked ? 'unlocked' : 'locked'}`;
-                btn.innerHTML = isUnlocked ? `${item.label}<br><span style="color:#26890c;font-size:0.8rem;">Auswählen</span>` : `${item.label}<br><span style="color:#ffd700;font-size:0.8rem;">🪙 ${item.price}</span>`;
-                btn.onclick = () => isUnlocked ? equipItem('glasses', item.emoji) : buyItem('glasses', item);
+                btn.style.cssText = `padding:10px; border-radius:8px; cursor:pointer; color:white; background:${isUnlocked ? '#1f4068' : '#0f3460'}; border:${item.price === 'epic' ? '2px solid #ffd700' : '1px solid #333'}`;
+
+                if (item.price === "epic") {
+                    btn.innerHTML = isUnlocked ? `${item.label}<br><span style="color:#26890c;font-size:0.75rem;">Auswählen</span>` : `${item.label}<br><span style="color:#ffd700;font-size:0.75rem;">⭐ EPISCH (Kiste)</span>`;
+                    btn.onclick = () => isUnlocked ? equipItem('glasses', item.emoji) : alert("Dieses epische Item gibt es nur aus Lern-Schatzkisten!");
+                } else {
+                    btn.innerHTML = isUnlocked ? `${item.label}<br><span style="color:#26890c;font-size:0.75rem;">Auswählen</span>` : `${item.label}<br><span style="color:#ffd700;font-size:0.75rem;">🪙 ${item.price}</span>`;
+                    btn.onclick = () => isUnlocked ? equipItem('glasses', item.emoji) : buyItem('glasses', item);
+                }
                 glassesGrid.appendChild(btn);
             });
         }
@@ -192,26 +130,17 @@
         function buyItem(type, item) {
             if (currentPlayer.coins >= item.price) {
                 currentPlayer.coins -= item.price;
-                playCorrectSound();
-                if (type === 'hat') { currentPlayer.unlockedHats.push(item.id); currentPlayer.avatar.hat = item.emoji; }
-                else { currentPlayer.unlockedGlasses.push(item.id); currentPlayer.avatar.glasses = item.emoji; }
-                document.getElementById("current-coins").innerText = currentPlayer.coins;
-                updatePreview(); renderShop();
-                db.ref("players/" + playerName.toLowerCase()).set(currentPlayer);
-            } else {
-                playRararaSound();
-                alert("Nicht genug Coins!");
-            }
+                if (type === 'hat') currentPlayer.unlockedHats.push(item.id);
+                if (type === 'glasses') currentPlayer.unlockedGlasses.push(item.id);
+                equipItem(type, item.emoji);
+            } else { alert("Nicht genug Coins!"); }
         }
 
-        function saveAndGoToMenu() {
-            playClickSound();
-            db.ref("players/" + playerName.toLowerCase()).set(currentPlayer, () => {
-                window.location.href = "menu.html";
-            });
+        function equipItem(type, emoji) {
+            if (!currentPlayer.avatar) currentPlayer.avatar = {};
+            currentPlayer.avatar[type] = emoji;
+            db.ref("players/" + playerName.toLowerCase()).set(currentPlayer);
         }
-
-        window.onload = fetchPlayerData;
     </script>
 </body>
 

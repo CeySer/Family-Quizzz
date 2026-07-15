@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil bearbeiten</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="color: #ff6b81;">Profil bearbeiten ⚙️</h2>
+
+        <div class="setup-section" style="text-align: left;">
+            <label>Dein Name (nicht änderbar):</label>
+            <input type="text" id="profile-name" disabled
+                style="background:#333; color:#aaa; width:100%; padding:10px; border-radius:8px; border:none; margin:10px 0;">
+
+            <label>Dein Alter:</label>
+            <input type="number" id="profile-age"
+                style="width:100%; padding:10px; border-radius:8px; border:2px solid #1368ce; background:#16213e; color:white; margin:10px 0; box-sizing:border-box;">
+        </div>
+
+        <button id="save-profile-btn" onclick="saveProfile()"
+            style="background-color: #26890c; color:white; padding:15px; border:none; border-radius:10px; width:100%; font-size:1.1rem; cursor:pointer;">Speichern
+            & zurück 💾</button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
+            authDomain: "family-quizzz-80c40.firebaseapp.com",
+            databaseURL: "https://family-quizzz-80c40-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "family-quizzz-80c40",
+            storageBucket: "family-quizzz-80c40.firebasestorage.app",
+            messagingSenderId: "30751445599",
+            appId: "1:30751445599:web:28636f46555f5df49881ea"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let playerName = sessionStorage.getItem("current_quiz_player");
+
+        // Daten laden
+        db.ref("players/" + playerName.toLowerCase()).once("value", (snapshot) => {
+            let player = snapshot.val();
+            document.getElementById("profile-name").value = player.name;
+            document.getElementById("profile-age").value = player.age;
+        });
+
+        function saveProfile() {
+            let newAge = parseInt(document.getElementById("profile-age").value);
+            if (newAge > 0) {
+                db.ref("players/" + playerName.toLowerCase()).update({
+                    age: newAge
+                }, () => {
+                    window.location.href = "menu.html";
+                });
+            } else {
+                alert("Bitte ein gültiges Alter eingeben!");
+            }
+        }
+    </script>
+</body>
+
+</html>

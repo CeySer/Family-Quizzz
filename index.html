@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Özdemir Familien-Quiz - Login</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
@@ -34,8 +33,7 @@
             width: 95px;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
-            position: relative;
+            transition: transform 0.2s;
         }
 
         .profile-card:hover {
@@ -55,7 +53,6 @@
             align-items: center;
             justify-content: center;
             border: 2px solid #e94560;
-            overflow: visible;
         }
 
         .profile-name {
@@ -80,7 +77,6 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 0.9rem;
         }
 
         .divider::before,
@@ -117,7 +113,7 @@
     <div class="container" id="login-screen">
         <h1 class="main-title">Özdemir Familien-Quiz 🎮</h1>
 
-        <!-- BESTEHENDE PROFILE AUS DER CLOUD -->
+        <!-- BESTEHENDE PROFILE -->
         <div class="profile-container" id="existing-profiles-box" style="display: none;">
             <div class="setup-title" style="margin-bottom: 5px;">Wer spielt heute? 👤</div>
             <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">Tippe auf dein Profil, um direkt
@@ -127,7 +123,7 @@
 
         <div class="divider" id="profile-divider" style="display: none;">ODER</div>
 
-        <!-- NEUER SPIELER ANMELDEN -->
+        <!-- NEU ANMELDEN -->
         <div class="setup-section">
             <div class="setup-title" id="new-player-title">Neuen Spieler anmelden ✍️</div>
             <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 5px;">Gib deinen Namen und dein Alter an:</p>
@@ -139,16 +135,6 @@
             </div>
 
             <button id="login-btn" onclick="handleLogin()">Anmelden & Weiter 🚀</button>
-        </div>
-
-        <!-- QR-CODE BEREICH -->
-        <div class="qr-box" id="qr-box">
-            <div style="font-size: 1rem; font-weight: bold; margin-bottom: 5px; color: #ff6b81;">Auf dem Handy spielen?
-                📱</div>
-            <p style="font-size: 0.8rem; color: #aaa; margin: 0 0 10px 0;">Scanne den Code mit der Handykamera!</p>
-            <div class="qr-code-wrapper">
-                <img id="qr-code-img" src="" alt="Lade QR-Code...">
-            </div>
         </div>
     </div>
 
@@ -165,23 +151,6 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let audioCtx;
-
-        function initAudio() {
-            if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-        }
-
-        function playTone(freq, type, duration) {
-            initAudio();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type; osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + duration);
-        }
 
         function listenToProfiles() {
             db.ref("players").on("value", (snapshot) => {
@@ -192,28 +161,26 @@
                 if (players) {
                     document.getElementById("existing-profiles-box").style.display = "block";
                     document.getElementById("profile-divider").style.display = "flex";
-                    document.getElementById("new-player-title").innerText = "Neues Profil erstellen 👤";
 
                     Object.keys(players).forEach(key => {
                         const playerData = players[key];
-                        // Admin soll nicht in der normalen Auswahlliste auftauchen
-                        if (playerData.name.toLowerCase() === "admin") return;
+                        if (playerData.name && playerData.name.toLowerCase() === "admin") return;
 
                         const card = document.createElement("div");
                         card.className = "profile-card";
                         card.onclick = () => loginAs(playerData.name);
 
+                        let base = playerData.avatar ? playerData.avatar.base || "🧑" : "🧑";
+                        let hat = playerData.avatar ? playerData.avatar.hat || "" : "";
+                        let glasses = playerData.avatar ? playerData.avatar.glasses || "" : "";
+
                         card.innerHTML = `
                         <div class="profile-avatar-wrapper">
-                            <span style="font-size: 2.2rem; z-index: 2; margin-top:-5px;">${playerData.avatar.base}</span>
-                            <span style="font-size: 1.2rem; margin-top: -12px; z-index: 1;">👕</span>
-                            <span style="font-size: 1.2rem; margin-top: -8px; z-index: 1;">👖</span>
-                            <span style="position:absolute; top:-12px; left:0; width:100%; text-align:center; font-size:1.8rem; z-index: 4;">${playerData.avatar.hat || ''}</span>
-                            <span style="position:absolute; top:2px; left:0; width:100%; text-align:center; font-size:1.1rem; z-index: 3;">${playerData.avatar.glasses || ''}</span>
+                            <span style="font-size: 2rem;">${base}${hat}${glasses}</span>
                         </div>
                         <div class="profile-name">${playerData.name}</div>
-                        <div class="profile-coins">🪙 ${playerData.coins}</div>
-                        <div style="font-size:0.75rem; color:#aaa; margin-top:2px;">${playerData.age || '?'} Jahre</div>
+                        <div class="profile-coins">🪙 ${playerData.coins || 0}</div>
+                        <div style="font-size:0.75rem; color:#aaa; margin-top:2px;">⭐ ${playerData.rankPoints || 0} Pkt.</div>
                     `;
                         grid.appendChild(card);
                     });
@@ -222,9 +189,8 @@
         }
 
         function loginAs(name) {
-            try { playTone(523, 'sine', 0.1); } catch (e) { }
             sessionStorage.setItem("current_quiz_player", name);
-            setTimeout(() => { window.location.href = "menu.html"; }, 150);
+            window.location.href = "menu.html";
         }
 
         function handleLogin() {
@@ -237,13 +203,12 @@
 
             if (name.toLowerCase() === "admin") {
                 sessionStorage.setItem("current_quiz_player", "Admin");
-                window.location.href = "menu.html"; // Admin leitet ins Menü weiter, dort gibt es den Admin-Button
+                window.location.href = "menu.html";
                 return;
             }
 
             if (!age || age < 1) { alert("Bitte gib ein gültiges Alter an!"); return; }
 
-            try { playTone(440, 'sine', 0.1); } catch (e) { }
             sessionStorage.setItem("current_quiz_player", name);
             let nameKey = name.toLowerCase();
 
@@ -253,19 +218,17 @@
                         name: name,
                         age: age,
                         coins: 0,
+                        rankPoints: 0,
                         avatar: { base: "🧑", hat: "", glasses: "" },
                         unlockedHats: ["cap"],
                         unlockedGlasses: ["nerd"],
-                        lastCategories: ["sprachen"], // Standardmäßig nur die erste Kategorie
-                        streak: 0,                    // Für dynamische Schwierigkeit
-                        difficulty: 1,                // Start bei Level 1
-                        learnedQuestions: {}          // Für den Lernmodus
+                        lastCategories: ["sprachen"],
+                        learningProgress: 0
                     };
                     db.ref("players/" + nameKey).set(newPlayer, () => {
                         window.location.href = "avatar.html";
                     });
                 } else {
-                    // Alter bei bestehendem Spieler aktualisieren, falls neu eingegeben
                     db.ref("players/" + nameKey).update({ age: age }, () => {
                         window.location.href = "menu.html";
                     });
@@ -273,14 +236,7 @@
             });
         }
 
-        window.onload = function () {
-            listenToProfiles();
-            const qrImg = document.getElementById("qr-code-img");
-            if (qrImg) {
-                const currentUrl = encodeURIComponent(window.location.href);
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${currentUrl}&color=1a1a2e&bgcolor=ffffff`;
-            }
-        }
+        window.onload = listenToProfiles;
     </script>
 </body>
 

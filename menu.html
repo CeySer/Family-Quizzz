@@ -11,7 +11,7 @@
         body {
             background-color: #0f172a;
             color: #f8fafc;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: sans-serif;
             margin: 0;
             padding-bottom: 80px;
         }
@@ -29,30 +29,39 @@
             margin-bottom: 15px;
         }
 
-        .admin-edit-box {
-            background: #334155;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #475569;
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
         }
 
         .bottom-nav {
             position: fixed;
             bottom: 0;
-            width: 100%;
-            max-width: 500px;
+            left: 0;
+            right: 0;
             background: #1e293b;
             display: flex;
             justify-content: space-around;
-            padding: 15px 0;
+            padding: 15px;
             border-top: 2px solid #334155;
         }
 
-        button {
-            cursor: pointer;
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
             border-radius: 8px;
-            padding: 8px;
+            cursor: pointer;
+        }
+
+        .input-mini {
+            width: 60px;
+            padding: 5px;
+            border-radius: 4px;
             border: none;
         }
     </style>
@@ -64,84 +73,71 @@
         <!-- Home Reiter -->
         <div id="page-home" class="page active">
             <div class="card">
-                <h2>Willkommen!</h2>
-                <p>🪙 Coins: <span id="menu-coins">0</span></p>
+                <h2>Hallo Ceyhun, willkommen zurück!</h2>
+                <select id="main-category" onchange="updateSubCategories()"></select>
+                <select id="sub-category"></select>
+                <button class="btn" onclick="startQuiz()">Quiz starten</button>
             </div>
-            <select id="main-category" onchange="updateSubCategories()"></select>
-            <select id="sub-category"></select>
-            <button onclick="startQuiz()"
-                style="width:100%; padding:15px; background:#10b981; color:white; font-weight:bold;">Quiz
-                starten</button>
         </div>
 
-        <!-- Eltern Dashboard -->
-        <div id="page-parent" class="page" style="display:none;">
-            <div class="card" style="border: 2px solid #ef4444;">
-                <h2 style="color:#ef4444;">👨‍🔧 Eltern-Kontrollzentrum</h2>
-                <div id="admin-stats-list">Lade Daten...</div>
+        <!-- Eltern Reiter -->
+        <div id="page-parent" class="page">
+            <div class="card">
+                <h2>Eltern-Dashboard</h2>
+                <div id="admin-list">Lade Spieler...</div>
             </div>
         </div>
     </div>
 
     <div class="bottom-nav">
-        <button onclick="switchPage('home')">🏠 Home</button>
-        <button onclick="switchPage('parent')">👨‍👩‍👦 Eltern</button>
+        <button onclick="switchPage('home')">Home</button>
+        <button onclick="switchPage('parent')">Eltern</button>
     </div>
 
     <script src="questions.js"></script>
     <script>
-        const firebaseConfig = { /* Deine Config hier einfügen */ };
+        const firebaseConfig = { /* Deine Daten hier einfügen */ };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function switchPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-            document.getElementById('page-' + id).style.display = 'block';
-        }
-
-        // Eltern Dashboard Logik
-        function loadParentDashboard() {
-            db.ref("players").on("value", (snapshot) => {
-                const container = document.getElementById("admin-stats-list");
-                container.innerHTML = "";
-                snapshot.forEach((child) => {
-                    let p = child.val();
-                    let key = child.key;
-                    let div = document.createElement("div");
-                    div.className = "admin-edit-box";
-                    div.innerHTML = `
-                    <strong>${p.name}</strong><br>
-                    Coins: ${p.coins || 0} | Zeit: ${Math.floor((p.learningProgress || 0) / 60)} Min<br>
-                    <button onclick="adjustCoins('${key}', 10)">+10 Coins</button>
-                    <button onclick="resetTime('${key}')">Zeit reset</button>
-                `;
-                    container.appendChild(div);
-                });
+        function updateSubCategories() {
+            const mainCat = document.getElementById("main-category").value;
+            const subSelect = document.getElementById("sub-category");
+            subSelect.innerHTML = "";
+            // Hier greifen wir auf allQuestions aus deiner questions.js zu
+            const subData = getCategoriesFor(mainCat);
+            subData.forEach(sub => {
+                const count = allQuestions.filter(q => q.category === sub.value).length;
+                const opt = document.createElement("option");
+                opt.innerText = `${sub.text} (${count} Fragen)`;
+                subSelect.appendChild(opt);
             });
         }
 
-        function adjustCoins(key, amount) {
-            db.ref("players/" + key + "/coins").transaction(c => (c || 0) + amount);
+        function switchPage(p) {
+            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+            document.getElementById('page-' + p).classList.add('active');
         }
 
-        function resetTime(key) {
-            db.ref("players/" + key + "/learningProgress").set(0);
+        function adjustCoins(playerName, amount) {
+            db.ref('players/' + playerName).once('value', (snap) => {
+                let p = snap.val();
+                p.coins = (p.coins || 0) + parseInt(amount);
+                db.ref('players/' + playerName).set(p);
+            });
         }
 
-        window.onload = () => { loadParentDashboard(); };
+        // Beim Laden: Spieler anzeigen für Admin
+        db.ref('players').on('value', (snap) => {
+            const list = document.getElementById('admin-list');
+            list.innerHTML = "";
+            snap.forEach(child => {
+                const p = child.val();
+                list.innerHTML += `<div>${p.name}: ${p.coins} Coins 
+                <button onclick="adjustCoins('${child.key}', 10)">+10</button></div>`;
+            });
+        });
     </script>
 </body>
 
 </html>
-```
-
-### Wie du jetzt vorgehst:
-1. **Prüfe `questions.js`**: Stelle sicher, dass dort `const allQuestions = [...]` steht. Wenn die Datei leer ist, füllt
-sich dein Dropdown-Menü nicht mit Fragen.
-2. **Firebase Config**: Stelle sicher, dass deine `firebaseConfig` in der `menu.html` oben korrekt eingefügt ist (die
-hatte ich im Beispiel als Kommentar markiert).
-3. **Vokabel-Datei**: Diese ist eine eigenständige Datei (`vokabeln.html`). Sie braucht die `questions.js` nicht,
-sondern hat ihre eigene Liste eingebaut.
-
-Wenn du mir sagst, welche Datei genau "leer" aussieht, kopiere ich dir den Code für diese spezifische Datei noch einmal
-in einem einzelnen Block, damit du ihn sicher kopieren kannst! Welches ist die Datei mit dem größten Problem?

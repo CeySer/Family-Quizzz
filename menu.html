@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zentrale - Family Quizzz</title>
-    <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
@@ -23,42 +22,6 @@
             padding: 15px;
         }
 
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1e293b;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            border-top: 2px solid #334155;
-            z-index: 1000;
-        }
-
-        .nav-item {
-            background: none;
-            border: none;
-            color: #94a3b8;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .nav-item.active {
-            color: #3b82f6;
-        }
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-        }
-
         .card {
             background: #1e293b;
             padding: 20px;
@@ -68,9 +31,29 @@
 
         .admin-edit-box {
             background: #334155;
-            padding: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #475569;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 500px;
+            background: #1e293b;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            border-top: 2px solid #334155;
+        }
+
+        button {
+            cursor: pointer;
             border-radius: 8px;
-            margin-top: 10px;
+            padding: 8px;
+            border: none;
         }
     </style>
 </head>
@@ -78,22 +61,21 @@
 <body>
 
     <div class="container">
-        <!-- REITER: HOME -->
+        <!-- Home Reiter -->
         <div id="page-home" class="page active">
             <div class="card">
-                <h2 id="welcome-text">Willkommen!</h2>
+                <h2>Willkommen!</h2>
                 <p>🪙 Coins: <span id="menu-coins">0</span></p>
             </div>
-            <!-- Dropdowns wie zuvor -->
             <select id="main-category" onchange="updateSubCategories()"></select>
             <select id="sub-category"></select>
             <button onclick="startQuiz()"
-                style="width:100%; padding:15px; background:#10b981; border:none; border-radius:10px; color:white; font-weight:bold;">Quiz
+                style="width:100%; padding:15px; background:#10b981; color:white; font-weight:bold;">Quiz
                 starten</button>
         </div>
 
-        <!-- REITER: ELTERN / ADMIN DASHBOARD -->
-        <div id="page-parent" class="page">
+        <!-- Eltern Dashboard -->
+        <div id="page-parent" class="page" style="display:none;">
             <div class="card" style="border: 2px solid #ef4444;">
                 <h2 style="color:#ef4444;">👨‍🔧 Eltern-Kontrollzentrum</h2>
                 <div id="admin-stats-list">Lade Daten...</div>
@@ -102,41 +84,36 @@
     </div>
 
     <div class="bottom-nav">
-        <button class="nav-item active" onclick="switchPage('home', this)">🏠 Home</button>
-        <button class="nav-item" onclick="switchPage('parent', this)">👨‍👩‍👦 Eltern</button>
+        <button onclick="switchPage('home')">🏠 Home</button>
+        <button onclick="switchPage('parent')">👨‍👩‍👦 Eltern</button>
     </div>
 
     <script src="questions.js"></script>
     <script>
-        // Firebase Config...
+        const firebaseConfig = { /* Deine Config hier einfügen */ };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function switchPage(pageId, btn) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            document.getElementById(`page-${pageId}`).classList.add('active');
-            btn.classList.add('active');
+        function switchPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.getElementById('page-' + id).style.display = 'block';
         }
 
-        // ELTERN DASHBOARD MIT BEARBEITUNGSFUNKTION
+        // Eltern Dashboard Logik
         function loadParentDashboard() {
             db.ref("players").on("value", (snapshot) => {
                 const container = document.getElementById("admin-stats-list");
                 container.innerHTML = "";
-
                 snapshot.forEach((child) => {
                     let p = child.val();
                     let key = child.key;
-                    let mins = Math.floor((p.learningProgress || 0) / 60);
-
                     let div = document.createElement("div");
                     div.className = "admin-edit-box";
                     div.innerHTML = `
                     <strong>${p.name}</strong><br>
-                    Coins: ${p.coins || 0} | Zeit: ${mins} Min<br>
+                    Coins: ${p.coins || 0} | Zeit: ${Math.floor((p.learningProgress || 0) / 60)} Min<br>
                     <button onclick="adjustCoins('${key}', 10)">+10 Coins</button>
-                    <button onclick="resetTime('${key}')">Zeit zurücksetzen</button>
+                    <button onclick="resetTime('${key}')">Zeit reset</button>
                 `;
                     container.appendChild(div);
                 });
@@ -151,28 +128,20 @@
             db.ref("players/" + key + "/learningProgress").set(0);
         }
 
-        window.onload = () => {
-            initMenu();
-            loadParentDashboard();
-        };
+        window.onload = () => { loadParentDashboard(); };
     </script>
 </body>
 
 </html>
 ```
 
-### Was dieses Update für dich tut:
-1. **Zentrales Management:** Im Reiter „Eltern“ siehst du alle Profile untereinander.
-2. **Direkt-Eingriff:** Über die Buttons **„+10 Coins“** kannst du Belohnungen manuell vergeben (z.B. wenn sie im
-Haushalt geholfen haben).
-3. **Reset-Funktion:** Wenn eine Lernsession beendet ist oder die Zeit nicht korrekt gelaufen ist, kannst du die Zeit
-für das Kind per Klick auf 0 setzen.
-4. **Sicherheit:** Da dies in der `menu.html` liegt, ist es für dich immer griffbereit, sobald du dich als Admin oder
-Elternteil einloggst.
+### Wie du jetzt vorgehst:
+1. **Prüfe `questions.js`**: Stelle sicher, dass dort `const allQuestions = [...]` steht. Wenn die Datei leer ist, füllt
+sich dein Dropdown-Menü nicht mit Fragen.
+2. **Firebase Config**: Stelle sicher, dass deine `firebaseConfig` in der `menu.html` oben korrekt eingefügt ist (die
+hatte ich im Beispiel als Kommentar markiert).
+3. **Vokabel-Datei**: Diese ist eine eigenständige Datei (`vokabeln.html`). Sie braucht die `questions.js` nicht,
+sondern hat ihre eigene Liste eingebaut.
 
-**Tipp:** Um den Eltern-Bereich wirklich „privat“ zu halten, könntest du in der `initMenu` Funktion einfach eine Abfrage
-einbauen: `if (playerName !== "DeinName") { document.querySelector('[onclick*="parent"]').style.display = 'none'; }`. So
-sehen die Kinder den Reiter gar nicht erst!
-
-Soll ich die Dropdown-Logik in dieser Datei noch einmal final für dich glätten, damit die Fragenanzahl in Klammern
-wieder korrekt erscheint?
+Wenn du mir sagst, welche Datei genau "leer" aussieht, kopiere ich dir den Code für diese spezifische Datei noch einmal
+in einem einzelnen Block, damit du ihn sicher kopieren kannst! Welches ist die Datei mit dem größten Problem?

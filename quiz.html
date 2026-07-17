@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,120 +9,146 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
-
 <body>
 
-    <div class="container">
-        <div id="learning-chest-bar"
-            style="display: none; background: #1f4068; padding: 10px; border-radius: 10px; margin-bottom: 10px; text-align: center; border: 2px solid #ffd700; font-weight: bold; color: white;">
-            🎁 Lernzeit bis zur epischen Schatzkiste: <span id="chest-timer-display">15:00</span> Min
-        </div>
-
-        <div
-            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: white;">
-            <button onclick="window.location.href='menu.html'"
-                style="background: #555; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer;">Menü
-                🏠</button>
-            <span style="font-size: 1.2rem; font-weight: bold; color: #ffd700;">🪙 <span id="quiz-coins">0</span></span>
-        </div>
-
-        <div id="quiz-box"
-            style="background: #16213e; padding: 20px; border-radius: 15px; text-align: center; color: white;">
-            <h2 id="question-text" style="color: #ff6b81;">Lade Frage...</h2>
-            <div id="options-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-            </div>
-        </div>
+<div class="container">
+    <!-- BAR FÜR SCHATZKISTE -->
+    <div id="learning-chest-bar" style="display: none; background: #1f4068; padding: 10px; border-radius: 10px; margin-bottom: 10px; text-align: center; border: 2px solid #ffd700; font-weight: bold; color: white;">
+        🎁 Lernzeit bis zur epischen Schatzkiste: <span id="chest-timer-display">15:00</span> Min
     </div>
 
-    <div id="chest-overlay"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,10,25,0.95); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center;">
-        <h1 style="color: #ffd700; font-size: 2.2rem; margin-bottom: 20px;">🎉 15 MINUTEN GELERNT! 🎉</h1>
-        <div id="chest-emoji" style="font-size: 7rem; cursor: pointer;" onclick="openChest()">🎁</div>
-        <p id="chest-instruction" style="color: #aaa; margin-top: 15px;">Klicke auf das Geschenk, um es zu öffnen!</p>
-
-        <div id="reward-display" style="display: none; margin-top: 20px;">
-            <h2 style="color: #ff6b81;">Neues episches Item freigeschaltet!</h2>
-            <div id="reward-emoji" style="font-size: 5rem; margin: 15px 0;">👑</div>
-            <h3 id="reward-name" style="color: #ffd700;">Goldene Krone</h3>
-            <button onclick="closeChestAndContinue()"
-                style="background: #26890c; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; margin-top: 20px;">Genial!
-                Weiter ➔</button>
-        </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: white;">
+        <button onclick="window.location.href='menu.html'" style="background: #555; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer;">Menü 🏠</button>
+        <span style="font-size: 1.2rem; font-weight: bold; color: #ffd700;">🪙 <span id="quiz-coins">0</span></span>
     </div>
 
-    <script src="questions.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
-            authDomain: "family-quizzz-80c40.firebaseapp.com",
-            databaseURL: "https://family-quizzz-80c40-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "family-quizzz-80c40",
-            storageBucket: "family-quizzz-80c40.firebasestorage.app",
-            messagingSenderId: "30751445599",
-            appId: "1:30751445599:web:28636f46555f5df49881ea"
-        };
+    <div id="quiz-box" style="background: #16213e; padding: 20px; border-radius: 15px; text-align: center; color: white;">
+        <h2 id="question-text" style="color: #ff6b81;">Lade Frage...</h2>
+        <div id="options-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;"></div>
+    </div>
+</div>
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+<!-- KISTEN-OVERLAY -->
+<div id="chest-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,10,25,0.95); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center;">
+    <h1 style="color: #ffd700; font-size: 2.2rem; margin-bottom: 20px;">🎉 15 MINUTEN GELERNT! 🎉</h1>
+    <div id="chest-emoji" style="font-size: 7rem; cursor: pointer;" onclick="openChest()">🎁</div>
+    <p id="chest-instruction" style="color: #aaa; margin-top: 15px;">Klicke auf das Geschenk, um es zu öffnen!</p>
+    
+    <div id="reward-display" style="display: none; margin-top: 20px;">
+        <h2 style="color: #ff6b81;">Neues episches Item freigeschaltet!</h2>
+        <div id="reward-emoji" style="font-size: 5rem; margin: 15px 0;">👑</div>
+        <h3 id="reward-name" style="color: #ffd700;">Goldene Krone</h3>
+        <button onclick="closeChestAndContinue()" style="background: #26890c; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; margin-top: 20px;">Genial! Weiter ➔</button>
+    </div>
+</div>
 
-        let playerName = sessionStorage.getItem("current_quiz_player");
-        let settings = JSON.parse(sessionStorage.getItem("quiz_settings")) || { categories: ["klasse2"], mode: "spiel" };
-        let currentPlayer = null;
-        let currentQuestionIndex = 0;
-        let filteredQuestions = [];
+<script src="questions.js"></script>
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
+        authDomain: "family-quizzz-80c40.firebaseapp.com",
+        databaseURL: "https://family-quizzz-80c40-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "family-quizzz-80c40",
+        storageBucket: "family-quizzz-80c40.firebasestorage.app",
+        messagingSenderId: "30751445599",
+        appId: "1:30751445599:web:28636f46555f5df49881ea"
+    };
 
-        let learningSeconds = 0;
-        let learningInterval;
-        const SECONDS_NEEDED_FOR_CHEST = 900; // 15 Min
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        db.ref("players/" + (playerName ? playerName.toLowerCase() : "")).on("value", (snapshot) => {
-            currentPlayer = snapshot.val();
-            if (currentPlayer) {
-                document.getElementById("quiz-coins").innerText = currentPlayer.coins || 0;
-                if (!currentPlayer.unlockedHats) currentPlayer.unlockedHats = [];
-                if (!currentPlayer.unlockedGlasses) currentPlayer.unlockedGlasses = [];
+    let playerName = sessionStorage.getItem("current_quiz_player");
+    let settings = JSON.parse(sessionStorage.getItem("quiz_settings")) || { categories: ["klasse2"], mode: "spiel" };
+    let currentPlayer = null;
+    let currentQuestionIndex = 0;
+    let filteredQuestions = [];
+    let hasAnswered = false; // Flag, um Mehrfachklicks zu verhindern
+
+    let learningSeconds = 0;
+    let learningInterval;
+    const SECONDS_NEEDED_FOR_CHEST = 900; // 15 Min
+
+    db.ref("players/" + (playerName ? playerName.toLowerCase() : "")).on("value", (snapshot) => {
+        currentPlayer = snapshot.val();
+        if (currentPlayer) {
+            document.getElementById("quiz-coins").innerText = currentPlayer.coins || 0;
+            if (!currentPlayer.unlockedHats) currentPlayer.unlockedHats = [];
+            if (!currentPlayer.unlockedGlasses) currentPlayer.unlockedGlasses = [];
+        }
+    });
+
+    function initQuiz() {
+        if (typeof allQuestions === "undefined" || !Array.isArray(allQuestions) || allQuestions.length === 0) {
+            document.getElementById("question-text").innerText = "❌ Fehler: 'questions.js' wurde nicht gefunden oder ist leer!";
+            return;
+        }
+
+        filteredQuestions = allQuestions.filter(q => settings.categories.includes(q.category));
+        
+        if (filteredQuestions.length === 0) {
+            filteredQuestions = allQuestions;
+        }
+
+        showQuestion();
+        if (settings.mode === "lernen" && playerName) startLearningTimer();
+    }
+
+    function showQuestion() {
+        if (filteredQuestions.length === 0) return;
+        hasAnswered = false;
+
+        // Falls noch ein "Weiter"-Button da ist, entfernen wir ihn
+        const oldNextBtn = document.getElementById("next-question-btn");
+        if (oldNextBtn) oldNextBtn.remove();
+
+        let q = filteredQuestions[currentQuestionIndex];
+        document.getElementById("question-text").innerText = `[#${q.id}] ${q.question}`;
+        let container = document.getElementById("options-container");
+        container.innerHTML = "";
+
+        q.answers.forEach((ans, idx) => {
+            let btn = document.createElement("button");
+            btn.innerText = ans;
+            btn.id = "opt-" + idx; // ID für gezieltes Einfärben vergeben
+            btn.style.cssText = "padding:15px; background:#1f4068; color:white; border:none; border-radius:10px; font-size:1.1rem; cursor:pointer; transition: background 0.3s, opacity 0.3s;";
+            btn.onclick = () => handleAnswer(idx, q.correct);
+            container.appendChild(btn);
+        });
+    }
+
+    function handleAnswer(selectedIdx, correctIdx) {
+        if (hasAnswered) return;
+        hasAnswered = true;
+
+        let isCorrect = (selectedIdx === correctIdx);
+        let q = filteredQuestions[currentQuestionIndex];
+
+        // Alle Knöpfe stylen und deaktivieren
+        q.answers.forEach((ans, idx) => {
+            let btn = document.getElementById("opt-" + idx);
+            if (btn) {
+                btn.disabled = true;
+                btn.style.cursor = "default";
+                
+                if (idx === correctIdx) {
+                    // Richtige Antwort immer GRÜN färben
+                    btn.style.background = "#26890c";
+                } else if (idx === selectedIdx && !isCorrect) {
+                    // Falsch angeklickte Antwort ROT färben
+                    btn.style.background = "#e94560";
+                } else {
+                    // Restliche Optionen abdunkeln
+                    btn.style.opacity = "0.4";
+                }
             }
         });
 
-        function initQuiz() {
-            // Prüfen, ob allQuestions existiert und geladen wurde
-            if (typeof allQuestions === "undefined" || !Array.isArray(allQuestions) || allQuestions.length === 0) {
-                document.getElementById("question-text").innerText = "❌ Fehler: 'questions.js' wurde nicht gefunden oder ist leer! Bitte überprüfe die Datei im Hauptordner.";
-                return;
-            }
-
-            filteredQuestions = allQuestions.filter(q => settings.categories.includes(q.category));
-
-            if (filteredQuestions.length === 0) {
-                filteredQuestions = allQuestions;
-            }
-
-            showQuestion();
-            if (settings.mode === "lernen" && playerName) startLearningTimer();
-        }
-
-        function showQuestion() {
-            if (filteredQuestions.length === 0) return;
-
-            let q = filteredQuestions[currentQuestionIndex];
-            document.getElementById("question-text").innerText = `[#${q.id}] ${q.question}`;
-            let container = document.getElementById("options-container");
-            container.innerHTML = "";
-
-            q.answers.forEach((ans, idx) => {
-                let btn = document.createElement("button");
-                btn.innerText = ans;
-                btn.style.cssText = "padding:15px; background:#1f4068; color:white; border:none; border-radius:10px; font-size:1.1rem; cursor:pointer;";
-                btn.onclick = () => handleAnswer(idx === q.correct);
-                container.appendChild(btn);
-            });
-        }
-
-        function handleAnswer(isCorrect) {
-            if (isCorrect && playerName && playerName.toLowerCase() !== "admin") {
+        if (isCorrect) {
+            // Belohnung bei richtiger Antwort
+            if (playerName && playerName.toLowerCase() !== "admin") {
                 let age = currentPlayer ? currentPlayer.age || 10 : 10;
                 let multiplier = age < 8 ? 5 : (age <= 10 ? 3 : (age <= 14 ? 2 : 1));
-
+                
                 db.ref("players/" + playerName.toLowerCase()).transaction((p) => {
                     if (p) {
                         p.coins = (p.coins || 0) + 10;
@@ -131,66 +156,86 @@
                     }
                     return p;
                 });
-                confetti({ particleCount: 50, spread: 50 });
             }
-            currentQuestionIndex = (currentQuestionIndex + 1) % filteredQuestions.length;
-            setTimeout(showQuestion, 600);
+            confetti({ particleCount: 50, spread: 50 });
+            
+            // Bei richtigem Ergebnis nach 1.5 Sekunden automatisch weitergehen
+            setTimeout(nextQuestion, 1500);
+        } else {
+            // Bei falschem Ergebnis den "Weiter ➔"-Button für stressfreies Lernen einblenden
+            showNextButton();
         }
+    }
 
-        function startLearningTimer() {
-            document.getElementById("learning-chest-bar").style.display = "block";
-            db.ref("players/" + playerName.toLowerCase() + "/learningProgress").once("value", (snapshot) => {
-                learningSeconds = snapshot.val() || 0;
+    function showNextButton() {
+        const nextBtn = document.createElement("button");
+        nextBtn.id = "next-question-btn";
+        nextBtn.innerText = "Nächste Frage ➔";
+        nextBtn.style.cssText = "padding:16px; background:#1368ce; color:white; border:none; border-radius:12px; font-size:1.2rem; font-weight:bold; cursor:pointer; margin-top:15px; width:100%; transition: transform 0.1s;";
+        nextBtn.onclick = nextQuestion;
+        
+        // Fügt den Button direkt unter den Optionen ein
+        document.getElementById("quiz-box").appendChild(nextBtn);
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex = (currentQuestionIndex + 1) % filteredQuestions.length;
+        showQuestion();
+    }
+
+    function startLearningTimer() {
+        document.getElementById("learning-chest-bar").style.display = "block";
+        db.ref("players/" + playerName.toLowerCase() + "/learningProgress").once("value", (snapshot) => {
+            learningSeconds = snapshot.val() || 0;
+            updateChestDisplay();
+
+            learningInterval = setInterval(() => {
+                learningSeconds++;
                 updateChestDisplay();
+                if (learningSeconds % 10 === 0) {
+                    db.ref("players/" + playerName.toLowerCase() + "/learningProgress").set(learningSeconds);
+                }
+                if (learningSeconds >= SECONDS_NEEDED_FOR_CHEST) {
+                    clearInterval(learningInterval);
+                    document.getElementById("chest-overlay").style.display = "flex";
+                }
+            }, 1000);
+        });
+    }
 
-                learningInterval = setInterval(() => {
-                    learningSeconds++;
-                    updateChestDisplay();
-                    if (learningSeconds % 10 === 0) {
-                        db.ref("players/" + playerName.toLowerCase() + "/learningProgress").set(learningSeconds);
-                    }
-                    if (learningSeconds >= SECONDS_NEEDED_FOR_CHEST) {
-                        clearInterval(learningInterval);
-                        document.getElementById("chest-overlay").style.display = "flex";
-                    }
-                }, 1000);
-            });
-        }
+    function updateChestDisplay() {
+        let remaining = Math.max(0, SECONDS_NEEDED_FOR_CHEST - learningSeconds);
+        let mins = Math.floor(remaining / 60);
+        let secs = remaining % 60;
+        document.getElementById("chest-timer-display").innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
 
-        function updateChestDisplay() {
-            let remaining = Math.max(0, SECONDS_NEEDED_FOR_CHEST - learningSeconds);
-            let mins = Math.floor(remaining / 60);
-            let secs = remaining % 60;
-            document.getElementById("chest-timer-display").innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-        }
+    function openChest() {
+        const epicHats = [{ id: "halo", label: "Heiligenschein 😇", emoji: "😇" }, { id: "ninja", label: "Ninja-Stirnband 🥷", emoji: "🥷" }];
+        let prize = epicHats[Math.floor(Math.random() * epicHats.length)];
 
-        function openChest() {
-            const epicHats = [{ id: "halo", label: "Heiligenschein 😇", emoji: "😇" }, { id: "ninja", label: "Ninja-Stirnband 🥷", emoji: "🥷" }];
-            let prize = epicHats[Math.floor(Math.random() * epicHats.length)];
+        if (!currentPlayer.unlockedHats.includes(prize.id)) currentPlayer.unlockedHats.push(prize.id);
+        if (!currentPlayer.avatar) currentPlayer.avatar = {};
+        currentPlayer.avatar.hat = prize.emoji;
 
-            if (!currentPlayer.unlockedHats.includes(prize.id)) currentPlayer.unlockedHats.push(prize.id);
-            if (!currentPlayer.avatar) currentPlayer.avatar = {};
-            currentPlayer.avatar.hat = prize.emoji;
+        db.ref("players/" + playerName.toLowerCase()).set(currentPlayer);
+        db.ref("players/" + playerName.toLowerCase() + "/learningProgress").set(0);
 
-            db.ref("players/" + playerName.toLowerCase()).set(currentPlayer);
-            db.ref("players/" + playerName.toLowerCase() + "/learningProgress").set(0);
+        document.getElementById("chest-emoji").style.display = "none";
+        document.getElementById("chest-instruction").style.display = "none";
+        document.getElementById("reward-emoji").innerText = prize.emoji;
+        document.getElementById("reward-name").innerText = prize.label;
+        document.getElementById("reward-display").style.display = "block";
+        confetti({ particleCount: 100, spread: 70 });
+    }
 
-            document.getElementById("chest-emoji").style.display = "none";
-            document.getElementById("chest-instruction").style.display = "none";
-            document.getElementById("reward-emoji").innerText = prize.emoji;
-            document.getElementById("reward-name").innerText = prize.label;
-            document.getElementById("reward-display").style.display = "block";
-            confetti({ particleCount: 100, spread: 70 });
-        }
+    function closeChestAndContinue() {
+        document.getElementById("chest-overlay").style.display = "none";
+        learningSeconds = 0;
+        startLearningTimer();
+    }
 
-        function closeChestAndContinue() {
-            document.getElementById("chest-overlay").style.display = "none";
-            learningSeconds = 0;
-            startLearningTimer();
-        }
-
-        window.onload = initQuiz;
-    </script>
+    window.onload = initQuiz;
+</script>
 </body>
-
 </html>

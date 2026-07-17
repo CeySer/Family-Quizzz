@@ -4,110 +4,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hauptmenü - Family Quizzz</title>
+    <title>Zentrale - Family Quizzz & Werkstatt</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: #0f111a;
-            color: #ffffff;
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', sans-serif;
             margin: 0;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
+            padding-bottom: 70px;
         }
 
         .container {
-            width: 100%;
             max-width: 500px;
             margin: 0 auto;
-        }
-
-        .admin-panel {
-            background-color: #1f4068;
             padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 2px dashed #ffd700;
-            text-align: left;
         }
 
-        .admin-q-list {
-            max-height: 250px;
-            overflow-y: auto;
-            background: #16213e;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 0.85rem;
+        /* Feste Navigation unten */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1e293b;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 2px solid #334155;
+            z-index: 1000;
         }
 
-        .admin-q-item {
-            border-bottom: 1px solid #333;
-            padding: 6px 0;
-        }
-
-        .setup-section {
-            background-color: #16213e;
-            padding: 15px;
-            border-radius: 16px;
-            margin-bottom: 15px;
-            border: 1px solid #1f4068;
-        }
-
-        .setup-title {
-            font-size: 1.15rem;
-            font-weight: bold;
-            color: #ff6b81;
-            margin-bottom: 8px;
-        }
-
-        .opt-btn {
-            background: #1a1a2e;
+        .nav-item {
+            background: none;
+            border: none;
             color: #94a3b8;
-            border: 2px solid #1f4068;
-            padding: 10px;
-            border-radius: 10px;
-            cursor: pointer;
             font-weight: bold;
-            transition: all 0.2s;
-        }
-
-        .opt-btn.active {
-            border-color: #ff6b81;
-            background: #ff6b81;
-            color: white;
-        }
-
-        .cat-btn {
+            font-size: 0.85rem;
+            cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 15px !important;
-            min-height: 85px;
+            gap: 4px;
+        }
+
+        .nav-item.active {
+            color: #3b82f6;
+        }
+
+        .nav-icon {
+            font-size: 1.4rem;
+        }
+
+        /* Seiten-Logik */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Modernisierte UI-Karten */
+        .card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            color: #3b82f6;
             font-weight: bold;
-            transition: all 0.2s ease-in-out;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .cat-count {
-            font-size: 0.8rem;
-            color: #ffd700;
-            margin-top: 4px;
-            opacity: 0.85;
-            font-weight: normal;
+        /* Dropdowns & Selektoren */
+        select,
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #334155;
+            border: 2px solid #475569;
+            color: white;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            outline: none;
+            box-sizing: border-box;
         }
 
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 10px;
-            margin-top: 8px;
+        .start-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* Werkstatt Styles */
+        .calc-result {
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+            margin-top: 10px;
+            font-weight: bold;
+            color: #34d399;
         }
     </style>
 </head>
@@ -115,118 +130,137 @@
 <body>
 
     <div class="container">
-        <!-- ADMIN PANEL -->
-        <div id="admin-box" class="admin-panel" style="display: none;">
-            <h2 style="margin-top: 0; color: #ffd700;">👨‍🔧 Admin-Kontrollzentrum</h2>
-            <p style="font-size: 0.85rem; color: #aaa;">Alle nummerierten Fragen im System:</p>
-            <div class="admin-q-list" id="admin-questions-container">Lade Fragen...</div>
+
+        <!-- ========================================== -->
+        <!-- REITER 1: HOME & LERNEN                    -->
+        <!-- ========================================== -->
+        <div id="page-home" class="page active">
+            <!-- Spieler-Kopfbereich -->
+            <div class="card"
+                style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #1e3a8a, #1e293b);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div id="mini-avatar" style="font-size: 2.3rem;">🧑</div>
+                    <div>
+                        <span id="welcome-text" style="font-weight: bold; font-size: 1.25rem;">Lade...</span><br>
+                        <span style="color: #fbbf24; font-weight: bold;">🪙 <span id="menu-coins">0</span> Coins</span>
+                    </div>
+                </div>
+                <button onclick="window.location.href='avatar.html'"
+                    style="background: #fbbf24; color: #111; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">Shop
+                    🎨</button>
+            </div>
+
+            <!-- MODUS WÄHLEN -->
+            <div class="card">
+                <div class="section-title">🎮 1. Spiel-Modus</div>
+                <select id="game-mode-select">
+                    <option value="spiel">🏆 Spiel-Modus (Coins & Zeitdruck)</option>
+                    <option value="lernen">📖 Lern-Modus (15 Min. Schatzkiste)</option>
+                </select>
+            </div>
+
+            <!-- THEMENBEREICHE ALS DOPPEL-DROPDOWN -->
+            <div class="card" style="border: 2px solid #3b82f6;">
+                <div class="section-title">🎒 2. Wissens-Quiz</div>
+                <label style="font-size:0.8rem; color:#94a3b8; font-weight:bold;">HAUPTKATEGORIE WÄHLEN:</label>
+                <select id="main-category" onchange="updateSubCategories()">
+                    <option value="schule2">🏫 Grundschule - Klasse 2</option>
+                    <option value="schule5">🇬🇧 Weiterführende Schule - Klasse 5</option>
+                    <option value="kfz">🔧 KFZ-Mechatroniker (Ausbildung)</option>
+                    <option value="allgemein">🕌 Kultur & Sprachen</option>
+                </select>
+
+                <label style="font-size:0.8rem; color:#94a3b8; font-weight:bold;">UNTERKATEGORIE WÄHLEN:</label>
+                <select id="sub-category">
+                    <!-- Wird dynamisch befüllt -->
+                </select>
+
+                <button onclick="startQuiz()" class="start-btn">Quiz starten! 🚀</button>
+            </div>
+
+            <!-- VOKABELTRAINER BEREICH -->
+            <div class="card" style="border: 2px solid #6366f1; background: #1e1b4b;">
+                <div class="section-title" style="color: #818cf8;">📖 3. Vokabel-Trainer</div>
+                <p style="font-size: 0.85rem; color: #cbd5e1; margin-top: 0;">Lerne Vokabeln direkt aus den echten
+                    Schulbüchern!</p>
+                <button onclick="window.location.href='vokabeln.html'" class="start-btn"
+                    style="background:#4f46e5;">Vokabeltrainer öffnen ➔</button>
+            </div>
         </div>
 
-        <!-- USER HEADER WITH BUTTONS -->
-        <div class="user-profile-header"
-            style="display: flex; align-items: center; justify-content: space-between; background: #16213e; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #1f4068;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div id="mini-avatar" style="font-size: 2.2rem;">🧑</div>
-                <div>
-                    <span id="welcome-text"
-                        style="font-weight: bold; font-size: 1.25rem; color: #ff6b81;">Lade...</span><br>
-                    <span style="color: #ffd700; font-weight: bold;">🪙 <span id="menu-coins">0</span> Coins</span>
-                    <span id="user-age-tag" style="margin-left: 5px; color:#aaa; font-size:0.8rem;"></span>
+        <!-- ========================================== -->
+        <!-- REITER 2: BESTENLISTE                      -->
+        <!-- ========================================== -->
+        <div id="page-leaderboard" class="page">
+            <div class="card">
+                <div class="section-title" style="color:#fbbf24; justify-content:center;">🏆 Familien-Rangliste 🏆</div>
+                <p style="text-align: center; font-size: 0.8rem; color: #94a3b8; margin-top: 0;">Wer sammelt die meisten
+                    Sterne?</p>
+                <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                    Lade Rangliste...</div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- REITER 3: CEYHUNS WERKSTATT                -->
+        <!-- ========================================== -->
+        <div id="page-workshop" class="page">
+            <div class="card" style="border: 2px solid #10b981;">
+                <div class="section-title" style="color:#10b981;">🔧 Ceyhuns Werkstatt-Rechner</div>
+                <p style="font-size:0.85rem; color:#94a3b8; margin-top:0;">Prüfe deine Berechnungen für die
+                    Berufsschule:</p>
+
+                <select id="calc-type" onchange="toggleWorkshopInputs()">
+                    <option value="ohm">⚡ Ohmsches Gesetz (U = R * I)</option>
+                    <option value="resistor">🔌 Reihenschaltung (R_ges = R1 + R2)</option>
+                </select>
+
+                <!-- Inputs für Ohmsches Gesetz -->
+                <div id="inputs-ohm">
+                    <input type="number" id="input-u" placeholder="Spannung U (Volt) - leer lassen falls gesucht">
+                    <input type="number" id="input-r" placeholder="Widerstand R (Ohm) - leer lassen falls gesucht">
+                    <input type="number" id="input-i" placeholder="Stromstärke I (Amperé) - leer lassen falls gesucht">
+                </div>
+
+                <!-- Inputs für Reihenschaltung -->
+                <div id="inputs-resistor" style="display:none;">
+                    <input type="number" id="input-r1" placeholder="Widerstand R1 (Ohm)">
+                    <input type="number" id="input-r2" placeholder="Widerstand R2 (Ohm)">
+                </div>
+
+                <button onclick="calculateWorkshop()" class="start-btn" style="background:#10b981;">Berechnung
+                    durchführen 🧮</button>
+                <div id="workshop-result" class="calc-result" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- REITER 4: ELTERN DASHBOARD                 -->
+        <!-- ========================================== -->
+        <div id="page-parent" class="page">
+            <div class="card" style="border: 2px solid #ef4444;">
+                <div class="section-title" style="color:#ef4444;">👨‍🔧 Eltern-Kontrollzentrum</div>
+                <p style="font-size:0.85rem; color:#94a3b8; margin-top:0;">Hier siehst du den aktuellen Lernfortschritt
+                    aller Profile:</p>
+
+                <div id="parent-stats-container" style="display:flex; flex-direction:column; gap:10px;">
+                    Lade Auswertung...
                 </div>
             </div>
-
-            <!-- BUTTON BEREICH -->
-            <div style="display: flex; gap: 5px;">
-                <button
-                    style="background-color:#475569; padding: 8px 12px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold;"
-                    onclick="window.location.href='profile.html'">Profil ⚙️</button>
-                <button
-                    style="background-color:#1368ce; padding: 8px 12px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold;"
-                    id="shop-btn" onclick="window.location.href='avatar.html'">Shop 🎨</button>
-                <button
-                    style="background-color:#e94560; padding: 8px 12px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold;"
-                    onclick="logout()">Abmelden 🔄</button>
-            </div>
         </div>
 
-        <!-- RANGLISTE -->
-        <div class="setup-section" style="background-color: #1a1a2e; border: 2px solid #ffd700;">
-            <div class="setup-title" style="color: #ffd700; text-align: center; margin-bottom: 2px;">🏆
-                Familien-Bestenliste 🏆</div>
-            <p style="text-align: center; font-size: 0.75rem; color: #aaa; margin-top: 0; margin-bottom: 8px;">(Faire
-                Alters-Punkte: Jüngere bekommen mehr Sterne pro Frage!)</p>
-            <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 8px;">Lade Rangliste...</div>
-        </div>
+    </div>
 
-        <!-- DEDIZIERTER BEREICH FÜR VOKABELTRAINER -->
-        <div class="setup-section" style="background-color: #1e1b4b; border: 2px solid #6366f1; text-align: center;">
-            <div class="setup-title" style="color: #818cf8; margin-bottom: 5px; font-size: 1.2rem;">📖 Vokabel-Trainer!
-                🇬🇧 🇹🇷</div>
-            <p style="font-size: 0.85rem; color: #cbd5e1; margin-top: 0; margin-bottom: 12px;">
-                Lerne Vokabeln mit sprechenden Karteikarten, Wort-Quizzes und dem Tipp-Trainer!
-            </p>
-            <button onclick="window.location.href='vokabeln.html'"
-                style="background: #4f46e5; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(79,70,229,0.3); transition: transform 0.1s;">Vokabeln
-                lernen & Coins verdienen ➔</button>
-        </div>
-
-        <!-- MODUS WÄHLEN -->
-        <div class="setup-section">
-            <div class="setup-title">1. Spiel-Modus wählen 🎮</div>
-            <div class="option-group" style="display: flex; gap: 10px; margin-top: 8px;">
-                <button class="opt-btn active" id="mode-play" onclick="setGameMode('spiel')" style="flex: 1;">🏆
-                    Spiel-Modus (Coins & Zeit)</button>
-                <button class="opt-btn" id="mode-learn" onclick="setGameMode('lernen')" style="flex: 1;">📖 Lern-Modus
-                    (15m Kisten)</button>
-            </div>
-        </div>
-
-        <!-- KATEGORIEN WÄHLEN -->
-        <div class="setup-section" style="margin-top: 15px;">
-            <div class="setup-title">2. Themen & Lernfelder wählen 🎒</div>
-            <div class="category-grid">
-                <button class="opt-btn cat-btn active" id="cat-klasse2_mathe" onclick="toggleCategory('klasse2_mathe')">
-                    🏫 Klasse 2: Mathe
-                    <span class="cat-count" id="count-klasse2_mathe">0 Fragen</span>
-                </button>
-                <button class="opt-btn cat-btn" id="cat-klasse2_deutsch" onclick="toggleCategory('klasse2_deutsch')">
-                    🏫 Kl. 2: Deutsch
-                    <span class="cat-count" id="count-klasse2_deutsch">0 Fragen</span>
-                </button>
-                <button class="opt-btn cat-btn" id="cat-klasse5_englisch" onclick="toggleCategory('klasse5_englisch')">
-                    🇬🇧 Klasse 5: Englisch
-                    <span class="cat-count" id="count-klasse5_englisch">0 Fragen</span>
-                </button>
-                <button class="opt-btn cat-btn" id="cat-sprachen" onclick="toggleCategory('sprachen')">
-                    🗣️ Sprachen
-                    <span class="cat-count" id="count-sprachen">0 Fragen</span>
-                </button>
-                <button class="opt-btn cat-btn" id="cat-islam" onclick="toggleCategory('islam')">
-                    🕌 Islam
-                    <span class="cat-count" id="count-islam">0 Fragen</span>
-                </button>
-                <button class="opt-btn cat-btn" id="cat-kfz_lf1" onclick="toggleCategory('kfz_lf1')">
-                    🔧 KFZ LF 1: Wartung
-                    <span class="cat-count" id="count-kfz_lf1">0 Fragen</span>
-                </button>
-                <button class="opt-btn cat-btn" id="cat-kfz_lf2" onclick="toggleCategory('kfz_lf2')">
-                    🔧 KFZ LF 2: Motor
-                    <span class="cat-count" id="count-kfz_lf2">0 Fragen</span>
-                </button>
-                <button class="opt-btn cat-btn" id="cat-kfz_lf3" onclick="toggleCategory('kfz_lf3')">
-                    ⚡ KFZ LF 3: Elektrik
-                    <span class="cat-count" id="count-kfz_lf3">0 Fragen</span>
-                </button>
-                <button class="opt-btn cat-btn" id="cat-kfz_lf4" onclick="toggleCategory('kfz_lf4')">
-                    ⚙️ KFZ LF 4: Regler
-                    <span class="cat-count" id="count-kfz_lf4">0 Fragen</span>
-                </button>
-            </div>
-        </div>
-
-        <button onclick="startQuiz()"
-            style="background: #26890c; color: white; padding: 18px; font-size: 1.3rem; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; box-shadow: 0 5px 15px rgba(38,137,12,0.4);">Spiel
-            starten! 🚀</button>
+    <!-- FESTE NAVIGATION UNTEN -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchPage('home', this)"><span
+                class="nav-icon">🏠</span>Lernen</button>
+        <button class="nav-item" onclick="switchPage('leaderboard', this)"><span
+                class="nav-icon">🏆</span>Rangliste</button>
+        <button class="nav-item" onclick="switchPage('workshop', this)"><span
+                class="nav-icon">🔧</span>Werkstatt</button>
+        <button class="nav-item" onclick="switchPage('parent', this)"><span
+                class="nav-icon">👨‍👩‍👦</span>Eltern</button>
     </div>
 
     <script src="questions.js"></script>
@@ -246,170 +280,157 @@
 
         let playerName = sessionStorage.getItem("current_quiz_player");
         let currentPlayer = null;
-        let selectedCategories = ["klasse2_mathe"];
-        let gameMode = "spiel";
+
+        // SYNCHRONISATION DER DROPDOWNS MIT DEINEN KATEGORIEN IN QUESTIONS.JS
+        const subCategories = {
+            schule2: [
+                { value: "klasse2_mathe", text: "🧮 Mathematik" },
+                { value: "klasse2_deutsch", text: "📖 Deutsch & Märchen" }
+            ],
+            schule5: [
+                { value: "klasse5_englisch", text: "🇬🇧 Englisch-Training" }
+            ],
+            kfz: [
+                { value: "kfz_lf1", text: "🔧 LF 1: Wartung & Pflege" },
+                { value: "kfz_lf2", text: "⚙️ LF 2: Baugruppen montieren" },
+                { value: "kfz_lf3", text: "⚡ LF 3: Elektrische Systeme" },
+                { value: "kfz_lf4", text: "💻 LF 4: Steuerungs-Systeme" }
+            ],
+            allgemein: [
+                { value: "sprachen", text: "🗣️ Sprachen lernen" },
+                { value: "islam", text: "🕌 Islam-Wissen" }
+            ]
+        };
+
+        function updateSubCategories() {
+            const mainCat = document.getElementById("main-category").value;
+            const subSelect = document.getElementById("sub-category");
+            subSelect.innerHTML = "";
+
+            subCategories[mainCat].forEach(sub => {
+                const opt = document.createElement("option");
+                opt.value = sub.value;
+                opt.innerText = sub.text;
+                subSelect.appendChild(opt);
+            });
+        }
+
+        function switchPage(pageId, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            btn.classList.add('active');
+        }
 
         function initMenu() {
             if (!playerName) { window.location.href = "index.html"; return; }
+            updateSubCategories();
 
-            calculateQuestionCounts();
+            db.ref("players/" + playerName.toLowerCase()).on("value", (snapshot) => {
+                currentPlayer = snapshot.val();
+                if (!currentPlayer) return;
 
-            if (playerName.toLowerCase() === "admin") {
-                document.getElementById("admin-box").style.display = "block";
-                document.getElementById("welcome-text").innerText = "Chef (Admin)";
-                document.getElementById("mini-avatar").innerText = "⚙️";
-                document.getElementById("shop-btn").style.display = "none";
-                loadAdminQuestions();
-            } else {
-                db.ref("players/" + playerName.toLowerCase()).on("value", (snapshot) => {
-                    currentPlayer = snapshot.val();
-                    if (!currentPlayer) return;
+                document.getElementById("welcome-text").innerText = currentPlayer.name;
+                document.getElementById("menu-coins").innerText = currentPlayer.coins || 0;
 
-                    document.getElementById("welcome-text").innerText = currentPlayer.name;
-                    document.getElementById("menu-coins").innerText = currentPlayer.coins || 0;
-                    document.getElementById("user-age-tag").innerText = `(${currentPlayer.age || '?'} J.)`;
+                let base = currentPlayer.avatar ? currentPlayer.avatar.base || "🧑" : "🧑";
+                let hat = currentPlayer.avatar ? currentPlayer.avatar.hat || "" : "";
+                let glasses = currentPlayer.avatar ? currentPlayer.avatar.glasses || "" : "";
+                document.getElementById("mini-avatar").innerText = `${base}${hat}${glasses}`;
+            });
 
-                    selectedCategories = currentPlayer.lastCategories || ["klasse2_mathe"];
-                    updateCategoryButtons();
-
-                    let base = currentPlayer.avatar ? currentPlayer.avatar.base || "🧑" : "🧑";
-                    let hat = currentPlayer.avatar ? currentPlayer.avatar.hat || "" : "";
-                    let glasses = currentPlayer.avatar ? currentPlayer.avatar.glasses || "" : "";
-                    document.getElementById("mini-avatar").innerText = `${base}${hat}${glasses}`;
-                });
-            }
             loadLeaderboard();
-        }
-
-        function calculateQuestionCounts() {
-            if (typeof allQuestions === "undefined" || !Array.isArray(allQuestions)) return;
-
-            const counts = {
-                klasse2_mathe: 0,
-                klasse2_deutsch: 0,
-                klasse5_englisch: 0,
-                sprachen: 0,
-                islam: 0,
-                kfz_lf1: 0,
-                kfz_lf2: 0,
-                kfz_lf3: 0,
-                kfz_lf4: 0
-            };
-
-            allQuestions.forEach(q => {
-                if (counts[q.category] !== undefined) {
-                    counts[q.category]++;
-                }
-            });
-
-            Object.keys(counts).forEach(cat => {
-                const el = document.getElementById(`count-${cat}`);
-                if (el) {
-                    el.innerText = counts[cat] === 1 ? "1 Frage" : `${counts[cat]} Fragen`;
-                }
-            });
+            loadParentDashboard();
         }
 
         function loadLeaderboard() {
-            db.ref("players").orderByChild("rankPoints").on("value", (snapshot) => {
-                const leaderboardContainer = document.getElementById("leaderboard-list");
-                leaderboardContainer.innerHTML = "";
+            db.ref("players").on("value", (snapshot) => {
+                const container = document.getElementById("leaderboard-list");
+                container.innerHTML = "";
                 let playersArray = [];
 
-                snapshot.forEach((childSnapshot) => {
-                    let p = childSnapshot.val();
-                    if (p.name && p.name.toLowerCase() !== "admin") { playersArray.push(p); }
+                snapshot.forEach((child) => {
+                    let p = child.val();
+                    if (p.name && p.name.toLowerCase() !== "admin") playersArray.push(p);
                 });
 
                 playersArray.sort((a, b) => (b.rankPoints || 0) - (a.rankPoints || 0));
-                const medals = ["🥇", "🥈", "🥉"];
-
                 playersArray.forEach((player, index) => {
-                    let rankBadge = medals[index] || `#${index + 1}`;
                     let row = document.createElement("div");
-                    row.style.cssText = `display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:${index === 0 ? '#2a2400' : '#16213e'}; border:1px solid ${index === 0 ? '#ffd700' : '#1368ce'}; border-radius:8px; font-weight:bold;`;
-
-                    let base = player.avatar ? player.avatar.base || "🧑" : "🧑";
-                    let hat = player.avatar ? player.avatar.hat || "" : "";
-                    let glasses = player.avatar ? player.avatar.glasses || "" : "";
-
-                    row.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span>${rankBadge}</span>
-                        <span style="font-size:1.3rem;">${base}${hat}${glasses}</span>
-                        <div>
-                            <span style="color:white; font-size:0.95rem;">${player.name}</span>
-                            <span style="font-size:0.7rem; color:#aaa; display:block;">(${player.age || '?'} J.)</span>
-                        </div>
-                    </div>
-                    <div style="color:#ffd700; font-size:1rem;">⭐ ${player.rankPoints || 0} Pkt.</div>
-                `;
-                    leaderboardContainer.appendChild(row);
+                    row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px; background:#334155; border-radius:8px; font-weight:bold;";
+                    row.innerHTML = `<span>${index + 1}. ${player.name}</span><span style="color:#fbbf24;">⭐ ${player.rankPoints || 0} Pkt.</span>`;
+                    container.appendChild(row);
                 });
             });
         }
 
-        function loadAdminQuestions() {
-            const container = document.getElementById("admin-questions-container");
-            container.innerHTML = "";
-            if (typeof allQuestions !== "undefined" && allQuestions.length > 0) {
-                allQuestions.forEach(q => {
-                    const item = document.createElement("div");
-                    item.className = "admin-q-item";
-                    item.innerHTML = `
-                    <strong>[Frage #${q.id}]</strong> [${q.category.toUpperCase()}] 
-                    <span style="color: #ff6b81;">${q.question}</span><br>
-                    <span style="color: #26890c; font-size:0.8rem;">Richtige Antwort: ${q.answers[q.correct]}</span>
-                `;
-                    container.appendChild(item);
+        function loadParentDashboard() {
+            db.ref("players").on("value", (snapshot) => {
+                const container = document.getElementById("parent-stats-container");
+                container.innerHTML = "";
+
+                snapshot.forEach((child) => {
+                    let p = child.val();
+                    if (p.name && p.name.toLowerCase() !== "admin") {
+                        let mins = Math.floor((p.learningProgress || 0) / 60);
+                        let row = document.createElement("div");
+                        row.style.cssText = "background:#334155; padding:10px; border-radius:8px; font-size:0.9rem;";
+                        row.innerHTML = `
+                        <strong>👤 ${p.name} (Alter: ${p.age || '?'})</strong><br>
+                        🪙 Vermögen: <span style="color:#fbbf24;">${p.coins || 0} Coins</span><br>
+                        ⏱️ Aktuelle Lernzeit gesammelt: <span>${mins} Min.</span>
+                    `;
+                        container.appendChild(row);
+                    }
                 });
-            }
+            });
         }
 
-        function setGameMode(mode) {
-            gameMode = mode;
-            const playBtn = document.getElementById("mode-play");
-            const learnBtn = document.getElementById("mode-learn");
-
-            if (mode === 'spiel') {
-                playBtn.classList.add('active');
-                learnBtn.classList.remove('active');
-            } else {
-                playBtn.classList.remove('active');
-                learnBtn.classList.add('active');
-            }
+        // WERKSTATT-RECHNER LOGIK
+        function toggleWorkshopInputs() {
+            const type = document.getElementById("calc-type").value;
+            document.getElementById("inputs-ohm").style.display = type === 'ohm' ? 'block' : 'none';
+            document.getElementById("inputs-resistor").style.display = type === 'resistor' ? 'block' : 'none';
         }
 
-        function toggleCategory(cat) {
-            const idx = selectedCategories.indexOf(cat);
-            if (idx > -1) {
-                if (selectedCategories.length > 1) selectedCategories.splice(idx, 1);
-            } else {
-                selectedCategories.push(cat);
-            }
-            updateCategoryButtons();
-            if (currentPlayer && playerName.toLowerCase() !== "admin") {
-                db.ref("players/" + playerName.toLowerCase()).update({ lastCategories: selectedCategories });
-            }
-        }
+        function calculateWorkshop() {
+            const type = document.getElementById("calc-type").value;
+            const resBox = document.getElementById("workshop-result");
+            resBox.style.display = "block";
 
-        function updateCategoryButtons() {
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                const catId = btn.id.replace('cat-', '');
-                if (selectedCategories.includes(catId)) {
-                    btn.style.background = '#1368ce'; btn.style.color = 'white';
+            if (type === 'ohm') {
+                let u = parseFloat(document.getElementById("input-u").value);
+                let r = parseFloat(document.getElementById("input-r").value);
+                let i = parseFloat(document.getElementById("input-i").value);
+
+                if (!isNaN(r) && !isNaN(i) && isNaN(u)) {
+                    resBox.innerText = `Gesucht: Spannung U\nErgebnis: U = R * I = ${(r * i).toFixed(2)} Volt ⚡`;
+                } else if (!isNaN(u) && !isNaN(i) && isNaN(r)) {
+                    resBox.innerText = `Gesucht: Widerstand R\nErgebnis: R = U / I = ${(u / i).toFixed(2)} Ohm 🔌`;
+                } else if (!isNaN(u) && !isNaN(r) && isNaN(i)) {
+                    resBox.innerText = `Gesucht: Stromstärke I\nErgebnis: I = U / R = ${(u / r).toFixed(2)} Ampere ⚙️`;
                 } else {
-                    btn.style.background = '#16213e'; btn.style.color = '#aaa';
+                    resBox.innerText = "❌ Bitte lasse exakt den Wert leer, den du berechnen möchtest!";
                 }
-            });
+            } else if (type === 'resistor') {
+                let r1 = parseFloat(document.getElementById("input-r1").value);
+                let r2 = parseFloat(document.getElementById("input-r2").value);
+                if (isNaN(r1) || isNaN(r2)) {
+                    resBox.innerText = "❌ Bitte gib beide Widerstände ein!";
+                } else {
+                    resBox.innerText = `Gesucht: Gesamtwiderstand R_ges\nErgebnis: R_ges = R1 + R2 = ${(r1 + r2).toFixed(2)} Ohm 🔌`;
+                }
+            }
         }
 
         function startQuiz() {
-            sessionStorage.setItem("quiz_settings", JSON.stringify({ categories: selectedCategories, mode: gameMode }));
+            const subCat = document.getElementById("sub-category").value;
+            const mode = document.getElementById("game-mode-select").value;
+            sessionStorage.setItem("quiz_settings", JSON.stringify({ categories: [subCat], mode: mode }));
             window.location.href = "quiz.html";
         }
 
-        function logout() { sessionStorage.clear(); window.location.href = "index.html"; }
         window.onload = initMenu;
     </script>
 </body>

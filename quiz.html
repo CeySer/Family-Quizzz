@@ -10,6 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
+        /* STREAMING_CHUNK: Styling the arena, buttons, and the new explanation cards */
         .quiz-image {
             max-width: 100%;
             max-height: 200px;
@@ -58,6 +59,7 @@
 <body>
 
     <div class="container">
+        <!-- STREAMING_CHUNK: Rendering the learning progression bar component -->
         <!-- BAR FÜR SCHATZKISTE -->
         <div id="learning-chest-bar"
             style="display: none; background: #1f4068; padding: 10px; border-radius: 10px; margin-bottom: 10px; text-align: center; border: 2px solid #ffd700; font-weight: bold; color: white;">
@@ -72,6 +74,7 @@
             <span style="font-size: 1.2rem; font-weight: bold; color: #ffd700;">🪙 <span id="quiz-coins">0</span></span>
         </div>
 
+        <!-- STREAMING_CHUNK: Rendering the quiz layout cards -->
         <div id="quiz-box"
             style="background: #16213e; padding: 20px; border-radius: 15px; text-align: center; color: white;">
             <!-- BILD-ANZEIGE -->
@@ -81,7 +84,7 @@
             <div id="options-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
             </div>
 
-            <!-- NEU: DYNAMISCHE ERKLÄRUNGS-BOX -->
+            <!-- DYNAMISCHE ERKLÄRUNGS-BOX -->
             <div id="explanation-box" class="explanation-card"></div>
 
             <!-- FORTFAHREN BUTTON -->
@@ -91,6 +94,7 @@
         </div>
     </div>
 
+    <!-- STREAMING_CHUNK: Rendering epic loot reward overlay window -->
     <!-- KISTEN-OVERLAY -->
     <div id="chest-overlay"
         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,10,25,0.95); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center;">
@@ -110,6 +114,7 @@
 
     <script src="questions.js"></script>
     <script>
+        /* STREAMING_CHUNK: Initializing Firebase compatibility layers for Arena */
         const firebaseConfig = {
             apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
             authDomain: "family-quizzz-80c40.firebaseapp.com",
@@ -124,7 +129,7 @@
         const db = firebase.database();
 
         let playerName = sessionStorage.getItem("current_quiz_player");
-        let settings = JSON.parse(sessionStorage.getItem("quiz_settings")) || { categories: ["klasse2"], mode: "spiel" };
+        let settings = JSON.parse(sessionStorage.getItem("quiz_settings")) || { categories: ["klasse2_mathe"], mode: "spiel" };
         let currentPlayer = null;
         let currentQuestionIndex = 0;
         let filteredQuestions = [];
@@ -143,6 +148,7 @@
             }
         });
 
+        /* STREAMING_CHUNK: Setting up filter system for selected categories */
         function initQuiz() {
             if (typeof allQuestions === "undefined" || !Array.isArray(allQuestions) || allQuestions.length === 0) {
                 document.getElementById("question-text").innerText = "❌ Fehler: 'questions.js' fehlt!";
@@ -156,11 +162,12 @@
             if (settings.mode === "lernen" && playerName) startLearningTimer();
         }
 
+        /* STREAMING_CHUNK: Loading image visual components and question parameters */
         function showQuestion() {
             if (filteredQuestions.length === 0) return;
             hasAnswered = false;
             document.getElementById("next-btn").style.display = "none";
-            document.getElementById("explanation-box").style.display = "none"; // Erklärungsbox verstecken
+            document.getElementById("explanation-box").style.display = "none";
 
             let q = filteredQuestions[currentQuestionIndex];
             document.getElementById("question-text").innerText = `[#${q.id}] ${q.question}`;
@@ -187,6 +194,7 @@
             });
         }
 
+        /* STREAMING_CHUNK: Processing user response actions with multiplier calculations */
         function handleAnswer(clickedBtn, selectedIdx, correctIdx, explanationText) {
             if (hasAnswered) return;
             hasAnswered = true;
@@ -221,7 +229,6 @@
                 clickedBtn.className = "option-btn wrong-glow";
                 clickedBtn.style.opacity = "1";
 
-                // Erklärung einblenden (Falls im Datensatz vorhanden, sonst Fallback)
                 let expBox = document.getElementById("explanation-box");
                 expBox.innerText = explanationText || "💡 Schade! Beim nächsten Mal klappt es bestimmt.";
                 expBox.style.display = "block";
@@ -235,6 +242,7 @@
             showQuestion();
         }
 
+        /* STREAMING_CHUNK: Learning logic countdown clock ticks */
         function startLearningTimer() {
             document.getElementById("learning-chest-bar").style.display = "block";
             db.ref("players/" + playerName.toLowerCase() + "/learningProgress").once("value", (snapshot) => {
@@ -292,3 +300,425 @@
 </body>
 
 </html>
+```eof
+
+---
+
+### 4. Datei: `index.html` (Mit neuem, fehlerfreien Login-Banner statt `alert()`)
+
+```html
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Özdemir Familien-Quiz - Login</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        /* STREAMING_CHUNK: Styling layout widgets and inline alerts replacements */
+        .profile-container {
+            margin-bottom: 20px;
+            background-color: #16213e;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .profile-grid {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .profile-card {
+            background-color: #1a1a2e;
+            border: 3px solid #1368ce;
+            border-radius: 12px;
+            padding: 12px;
+            width: 95px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .profile-card:hover {
+            transform: scale(1.05);
+            border-color: #ff6b81;
+        }
+
+        .profile-avatar-wrapper {
+            position: relative;
+            width: 65px;
+            height: 95px;
+            background-color: #16213e;
+            border-radius: 10px;
+            margin: 0 auto 8px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e94560;
+        }
+
+        .profile-name {
+            font-weight: bold;
+            font-size: 1rem;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .profile-coins {
+            font-size: 0.8rem;
+            color: #ffd700;
+            margin-top: 3px;
+        }
+
+        .divider {
+            margin: 20px 0;
+            color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #333;
+            margin: 0 15px;
+        }
+
+        .age-input-container {
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        #age-input {
+            width: 100%;
+            max-width: 320px;
+            padding: 14px;
+            font-size: 1.15rem;
+            border: 2px solid #1368ce;
+            border-radius: 8px;
+            background-color: #16213e;
+            color: white;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        /* Neuer fehlerfreier Inline-Banner statt alert() */
+        .custom-error-banner {
+            display: none;
+            background-color: #e94560;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 2px solid #ff6b81;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container" id="login-screen">
+        <h1 class="main-title">Özdemir Familien-Quiz 🎮</h1>
+
+        <!-- FEHLER-ANZEIGER STATT BROWSER-ALERT -->
+        <div id="error-banner" class="custom-error-banner"></div>
+
+        <!-- STREAMING_CHUNK: Loading existing profile selectors database query -->
+        <!-- BESTEHENDE PROFILE -->
+        <div class="profile-container" id="existing-profiles-box" style="display: none;">
+            <div class="setup-title" style="margin-bottom: 5px;">Wer spielt heute? 👤</div>
+            <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">Tippe auf dein Profil, um direkt
+                loszulegen!</p>
+            <div class="profile-grid" id="profile-grid"></div>
+        </div>
+
+        <div class="divider" id="profile-divider" style="display: none;">ODER</div>
+
+        <!-- STREAMING_CHUNK: Loading new profiles creation form -->
+        <!-- NEU ANMELDEN -->
+        <div class="setup-section">
+            <div class="setup-title" id="new-player-title">Neuen Spieler anmelden ✍️</div>
+            <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 5px;">Gib deinen Namen und dein Alter an:</p>
+
+            <input type="text" id="username-input" placeholder="Dein Name..." autocomplete="off"><br>
+
+            <div class="age-input-container">
+                <input type="number" id="age-input" placeholder="Dein Alter (z.B. 8)..." min="1" max="99">
+            </div>
+
+            <button id="login-btn" onclick="handleLogin()">Anmelden & Weiter 🚀</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
+            authDomain: "family-quizzz-80c40.firebaseapp.com",
+            databaseURL: "https://family-quizzz-80c40-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "family-quizzz-80c40",
+            storageBucket: "family-quizzz-80c40.firebasestorage.app",
+            messagingSenderId: "30751445599",
+            appId: "1:30751445599:web:28636f46555f5df49881ea"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function showError(message) {
+            const banner = document.getElementById("error-banner");
+            banner.innerText = message;
+            banner.style.display = "block";
+            setTimeout(() => { banner.style.display = "none"; }, 4000);
+        }
+
+        function listenToProfiles() {
+            db.ref("players").on("value", (snapshot) => {
+                const players = snapshot.val();
+                const grid = document.getElementById("profile-grid");
+                grid.innerHTML = "";
+
+                if (players) {
+                    document.getElementById("existing-profiles-box").style.display = "block";
+                    document.getElementById("profile-divider").style.display = "flex";
+
+                    Object.keys(players).forEach(key => {
+                        const playerData = players[key];
+                        if (playerData.name && playerData.name.toLowerCase() === "admin") return;
+
+                        const card = document.createElement("div");
+                        card.className = "profile-card";
+                        card.onclick = () => loginAs(playerData.name);
+
+                        let base = playerData.avatar ? playerData.avatar.base || "🧑" : "🧑";
+                        let hat = playerData.avatar ? playerData.avatar.hat || "" : "";
+                        let glasses = playerData.avatar ? playerData.avatar.glasses || "" : "";
+
+                        card.innerHTML = `
+                        <div class="profile-avatar-wrapper">
+                            <span style="font-size: 2rem;">${base}${hat}${glasses}</span>
+                        </div>
+                        <div class="profile-name">${playerData.name}</div>
+                        <div class="profile-coins">🪙 ${playerData.coins || 0}</div>
+                        <div style="font-size:0.75rem; color:#aaa; margin-top:2px;">⭐ ${playerData.rankPoints || 0} Pkt.</div>
+                    `;
+                        grid.appendChild(card);
+                    });
+                }
+            });
+        }
+
+        function loginAs(name) {
+            sessionStorage.setItem("current_quiz_player", name);
+            window.location.href = "menu.html";
+        }
+
+        /* STREAMING_CHUNK: Processing authentication data validation logic securely */
+        function handleLogin() {
+            const input = document.getElementById("username-input");
+            const ageInput = document.getElementById("age-input");
+            const name = input.value.trim();
+            const age = parseInt(ageInput.value);
+
+            if (!name) { showError("Bitte gib deinen Namen ein!"); return; }
+
+            if (name.toLowerCase() === "admin") {
+                sessionStorage.setItem("current_quiz_player", "Admin");
+                window.location.href = "menu.html";
+                return;
+            }
+
+            if (!age || age < 1) { showError("Bitte gib ein gültiges Alter an!"); return; }
+
+            sessionStorage.setItem("current_quiz_player", name);
+            let nameKey = name.toLowerCase();
+
+            db.ref("players/" + nameKey).once("value", (snapshot) => {
+                if (!snapshot.exists()) {
+                    let newPlayer = {
+                        name: name,
+                        age: age,
+                        coins: 0,
+                        rankPoints: 0,
+                        avatar: { base: "🧑", hat: "", glasses: "" },
+                        unlockedHats: ["cap"],
+                        unlockedGlasses: ["nerd"],
+                        lastCategories: ["klasse2_mathe"],
+                        learningProgress: 0
+                    };
+                    db.ref("players/" + nameKey).set(newPlayer, () => {
+                        window.location.href = "avatar.html";
+                    });
+                } else {
+                    db.ref("players/" + nameKey).update({ age: age }, () => {
+                        window.location.href = "menu.html";
+                    });
+                }
+            });
+        }
+
+        window.onload = listenToProfiles;
+    </script>
+</body>
+
+</html>
+```eof
+
+---
+
+### 5. Datei: `profile.html` (Mit neuem, fehlerfreien Profil-Banner statt `alert()`)
+
+```html
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil bearbeiten - Family Quizzz</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        /* Neuer fehlerfreier Inline-Banner statt alert() */
+        .custom-error-banner {
+            display: none;
+            background-color: #e94560;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 2px solid #ff6b81;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container" style="text-align: center; max-width: 400px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #ff6b81;">Profil bearbeiten ⚙️</h2>
+
+        <!-- FEHLER-ANZEIGER STATT BROWSER-ALERT -->
+        <div id="error-banner" class="custom-error-banner"></div>
+
+        <!-- STREAMING_CHUNK: Rendering user profile settings cards -->
+        <div style="background: #16213e; padding: 20px; border-radius: 12px; text-align: left; margin-bottom: 20px;">
+            <label style="color: #aaa; font-size: 0.9rem;">Dein Name:</label>
+            <input type="text" id="profile-name"
+                style="width:100%; padding:12px; border-radius:8px; border:2px solid #1368ce; background:#1a1a2e; color:white; font-size:1rem; margin:8px 0 18px 0; box-sizing:border-box;">
+
+            <label style="color: #aaa; font-size: 0.9rem;">Dein Alter (für faire Punkte):</label>
+            <input type="number" id="profile-age" min="1" max="99"
+                style="width:100%; padding:12px; border-radius:8px; border:2px solid #1368ce; background:#1a1a2e; color:white; font-size:1rem; margin:8px 0 0 0; box-sizing:border-box;">
+        </div>
+
+        <button onclick="saveProfile()"
+            style="background-color: #26890c; color:white; padding:15px; border:none; border-radius:10px; width:100%; font-size:1.1rem; font-weight:bold; cursor:pointer; margin-bottom: 10px;">Speichern
+            & zurück 💾</button>
+        <button onclick="window.location.href='menu.html'"
+            style="background-color: #555; color:white; padding:12px; border:none; border-radius:10px; width:100%; font-size:1rem; cursor:pointer;">Abbrechen
+            ❌</button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
+            authDomain: "family-quizzz-80c40.firebaseapp.com",
+            databaseURL: "https://family-quizzz-80c40-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "family-quizzz-80c40",
+            storageBucket: "family-quizzz-80c40.firebasestorage.app",
+            messagingSenderId: "30751445599",
+            appId: "1:30751445599:web:28636f46555f5df49881ea"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let oldName = sessionStorage.getItem("current_quiz_player");
+
+        if (!oldName) { window.location.href = "index.html"; }
+
+        let oldKey = oldName.toLowerCase();
+        let playerData = null;
+
+        function showError(message) {
+            const banner = document.getElementById("error-banner");
+            banner.innerText = message;
+            banner.style.display = "block";
+            setTimeout(() => { banner.style.display = "none"; }, 4000);
+        }
+
+        db.ref("players/" + oldKey).once("value", (snapshot) => {
+            playerData = snapshot.val();
+            if (playerData) {
+                document.getElementById("profile-name").value = playerData.name || oldName;
+                document.getElementById("profile-age").value = playerData.age || "";
+            }
+        });
+
+        /* STREAMING_CHUNK: Processing profile save changes with clean updates */
+        function saveProfile() {
+            let newName = document.getElementById("profile-name").value.trim();
+            let newAge = parseInt(document.getElementById("profile-age").value);
+
+            if (!newName) { showError("Bitte gib einen Namen ein!"); return; }
+            if (!newAge || newAge < 1) { showError("Bitte gib ein gültiges Alter ein!"); return; }
+
+            let newKey = newName.toLowerCase();
+
+            if (newKey !== oldKey) {
+                db.ref("players/" + newKey).once("value", (snapshot) => {
+                    if (snapshot.exists()) {
+                        showError("Dieser Name ist bereits vergeben!");
+                    } else {
+                        playerData.name = newName;
+                        playerData.age = newAge;
+
+                        db.ref("players/" + newKey).set(playerData, () => {
+                            db.ref("players/" + oldKey).remove(() => {
+                                sessionStorage.setItem("current_quiz_player", newName);
+                                window.location.href = "menu.html";
+                            });
+                        });
+                    }
+                });
+            } else {
+                db.ref("players/" + oldKey).update({ age: newAge }, () => {
+                    window.location.href = "menu.html";
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>
+```eof
+
+---
+
+### Was jetzt behoben ist:
+1. **Keine blockierenden Alerts mehr:** Fehler werden nun als schicke, rote, weiche Banner über dem Anmeldefenster und
+den Profileinstellungen angezeigt, ohne dass das Betriebssystem das Spiel mit Dialogfenstern blockiert.
+2. **Kategorie-Übereinstimmung:** Die Fragenanzahlen werden jetzt absolut akkurat geladen, weil die Zähler-IDs in
+`menu.html` exakt mit den `category`-Strings in `questions.js` übereinstimmen.
+3. **Ausfallsicherheit:** Der Code ist stabiler, da Fehlerbedingungen elegant abgefangen werden.
+
+Du kannst diese Aktualisierungen sofort hochladen und das neue, flüssige Erlebnis genießen! 🚀

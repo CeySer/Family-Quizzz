@@ -32,6 +32,32 @@
             border-bottom: 1px solid #333;
             padding: 6px 0;
         }
+
+        .cat-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px !important;
+            min-height: 85px;
+            font-weight: bold;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .cat-count {
+            font-size: 0.8rem;
+            color: #ffd700;
+            margin-top: 4px;
+            opacity: 0.85;
+            font-weight: normal;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 8px;
+        }
     </style>
 </head>
 
@@ -96,19 +122,53 @@
             </div>
         </div>
 
-        <!-- KATEGORIEN WÄHLEN -->
+        <!-- KATEGORIEN WÄHLEN (THEMEN & LERNFELDER) -->
         <div class="setup-section" style="margin-top: 15px;">
-            <div class="setup-title">2. Themen-Kategorien 🎒</div>
-            <div class="option-group" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
-                <button class="opt-btn cat-btn active" id="cat-klasse2" onclick="toggleCategory('klasse2')">🏫 2.
-                    Klasse</button>
-                <button class="opt-btn cat-btn" id="cat-klasse5" onclick="toggleCategory('klasse5')">🏫 5.
-                    Klasse</button>
-                <button class="opt-btn cat-btn" id="cat-sprachen" onclick="toggleCategory('sprachen')">🗣️
-                    Sprachen</button>
-                <button class="opt-btn cat-btn" id="cat-islam" onclick="toggleCategory('islam')">🕌 Islam</button>
-                <button class="opt-btn cat-btn" id="cat-kfz" onclick="toggleCategory('kfz')">🔧 KFZ Lernfeld
-                    1-4</button>
+            <div class="setup-title">2. Themen & Lernfelder wählen 🎒</div>
+            <div class="category-grid">
+                <!-- SCHULE KLASSE 2 -->
+                <button class="opt-btn cat-btn active" id="cat-klasse2_mathe" onclick="toggleCategory('klasse2_mathe')">
+                    🏫 Klasse 2: Mathe
+                    <span class="cat-count" id="count-klasse2_mathe">0 Fragen</span>
+                </button>
+                <button class="opt-btn cat-btn" id="cat-klasse2_deutsch" onclick="toggleCategory('klasse2_deutsch')">
+                    🏫 Kl. 2: Deutsch
+                    <span class="cat-count" id="count-klasse2_deutsch">0 Fragen</span>
+                </button>
+
+                <!-- SCHULE KLASSE 5 -->
+                <button class="opt-btn cat-btn" id="cat-klasse5_englisch" onclick="toggleCategory('klasse5_englisch')">
+                    🇬🇧 Klasse 5: Englisch
+                    <span class="cat-count" id="count-klasse5_englisch">0 Fragen</span>
+                </button>
+
+                <!-- SPRACHEN & ISLAM -->
+                <button class="opt-btn cat-btn" id="cat-sprachen" onclick="toggleCategory('sprachen')">
+                    🗣️ Sprachen
+                    <span class="cat-count" id="count-sprachen">0 Fragen</span>
+                </button>
+                <button class="opt-btn cat-btn" id="cat-islam" onclick="toggleCategory('islam')">
+                    🕌 Islam
+                    <span class="cat-count" id="count-islam">0 Fragen</span>
+                </button>
+
+                <!-- KFZ MECHATRONIKER LERNFELDER -->
+                <button class="opt-btn cat-btn" id="cat-kfz_lf1" onclick="toggleCategory('kfz_lf1')">
+                    🔧 KFZ LF 1: Wartung
+                    <span class="cat-count" id="count-kfz_lf1">0 Fragen</span>
+                </button>
+                <button class="opt-btn cat-btn" id="cat-kfz_lf2" onclick="toggleCategory('kfz_lf2')">
+                    🔧 KFZ LF 2: Motor
+                    <span class="cat-count" id="count-kfz_lf2">0 Fragen</span>
+                </button>
+                <button class="opt-btn cat-btn" id="cat-kfz_lf3" onclick="toggleCategory('kfz_lf3')">
+                    ⚡ KFZ LF 3: Elektrik
+                    <span class="cat-count" id="count-kfz_lf3">0 Fragen</span>
+                </button>
+                <button class="opt-btn cat-btn" id="cat-kfz_lf4" onclick="toggleCategory('kfz_lf4')">
+                    ⚙️ KFZ LF 4: Regler
+                    <span class="cat-count" id="count-kfz_lf4">0 Fragen</span>
+                </button>
             </div>
         </div>
 
@@ -134,11 +194,14 @@
 
         let playerName = sessionStorage.getItem("current_quiz_player");
         let currentPlayer = null;
-        let selectedCategories = ["klasse2"];
+        let selectedCategories = ["klasse2_mathe"];
         let gameMode = "spiel";
 
         function initMenu() {
             if (!playerName) { window.location.href = "index.html"; return; }
+
+            // Fragenanzahlen berechnen und anzeigen
+            calculateQuestionCounts();
 
             if (playerName.toLowerCase() === "admin") {
                 document.getElementById("admin-box").style.display = "block";
@@ -155,7 +218,7 @@
                     document.getElementById("menu-coins").innerText = currentPlayer.coins || 0;
                     document.getElementById("user-age-tag").innerText = `(${currentPlayer.age || '?'} J.)`;
 
-                    selectedCategories = currentPlayer.lastCategories || ["klasse2"];
+                    selectedCategories = currentPlayer.lastCategories || ["klasse2_mathe"];
                     updateCategoryButtons();
 
                     let base = currentPlayer.avatar ? currentPlayer.avatar.base || "🧑" : "🧑";
@@ -165,6 +228,37 @@
                 });
             }
             loadLeaderboard();
+        }
+
+        function calculateQuestionCounts() {
+            if (typeof allQuestions === "undefined" || !Array.isArray(allQuestions)) return;
+
+            // Hilfsobjekt mit Zählern aufbauen
+            const counts = {
+                klasse2_mathe: 0,
+                klasse2_deutsch: 0,
+                klasse5_englisch: 0,
+                sprachen: 0,
+                islam: 0,
+                kfz_lf1: 0,
+                kfz_lf2: 0,
+                kfz_lf3: 0,
+                kfz_lf4: 0
+            };
+
+            allQuestions.forEach(q => {
+                if (counts[q.category] !== undefined) {
+                    counts[q.category]++;
+                }
+            });
+
+            // DOM mit den errechneten Werten füllen
+            Object.keys(counts).forEach(cat => {
+                const el = document.getElementById(`count-${cat}`);
+                if (el) {
+                    el.innerText = counts[cat] === 1 ? "1 Frage" : `${counts[cat]} Fragen`;
+                }
+            });
         }
 
         function loadLeaderboard() {
@@ -214,7 +308,7 @@
                     const item = document.createElement("div");
                     item.className = "admin-q-item";
                     item.innerHTML = `
-                    <strong>[Frage #${q.id}]</strong> [${q.category.toUpperCase()} - Lvl ${q.level}] 
+                    <strong>[Frage #${q.id}]</strong> [${q.category.toUpperCase()}] 
                     <span style="color: #ff6b81;">${q.question}</span><br>
                     <span style="color: #26890c; font-size:0.8rem;">Richtige Antwort: ${q.answers[q.correct]}</span>
                 `;

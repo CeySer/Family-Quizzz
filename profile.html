@@ -8,28 +8,91 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #0f111a;
+            color: #ffffff;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 2px solid #1368ce;
+            background-color: #1a1a2e;
+            color: white;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .custom-error-banner {
+            display: none;
+            background-color: #e94560;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 2px solid #ff6b81;
+        }
+    </style>
 </head>
 
 <body>
 
-    <div class="container" style="text-align: center; max-width: 400px; margin: 0 auto; padding: 20px;">
+    <div class="container">
         <h2 style="color: #ff6b81;">Profil bearbeiten ⚙️</h2>
 
-        <div style="background: #16213e; padding: 20px; border-radius: 12px; text-align: left; margin-bottom: 20px;">
-            <label style="color: #aaa; font-size: 0.9rem;">Dein Name:</label>
-            <input type="text" id="profile-name"
-                style="width:100%; padding:12px; border-radius:8px; border:2px solid #1368ce; background:#1a1a2e; color:white; font-size:1rem; margin:8px 0 18px 0; box-sizing:border-box;">
+        <!-- FEHLER-ANZEIGER STATT BROWSER-ALERT -->
+        <div id="error-banner" class="custom-error-banner"></div>
 
-            <label style="color: #aaa; font-size: 0.9rem;">Dein Alter (für faire Punkte):</label>
-            <input type="number" id="profile-age" min="1" max="99"
-                style="width:100%; padding:12px; border-radius:8px; border:2px solid #1368ce; background:#1a1a2e; color:white; font-size:1rem; margin:8px 0 0 0; box-sizing:border-box;">
+        <div
+            style="background: #16213e; padding: 20px; border-radius: 12px; text-align: left; margin-bottom: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
+            <label style="color: #aaa; font-size: 0.9rem;">Dein Name:</label>
+            <input type="text" id="profile-name">
+
+            <label style="color: #aaa; font-size: 0.9rem; margin-top: 15px; display: block;">Dein Alter (für faire
+                Punkte):</label>
+            <input type="number" id="profile-age" min="1" max="99">
         </div>
 
-        <button onclick="saveProfile()"
-            style="background-color: #26890c; color:white; padding:15px; border:none; border-radius:10px; width:100%; font-size:1.1rem; font-weight:bold; cursor:pointer; margin-bottom: 10px;">Speichern
-            & zurück 💾</button>
-        <button onclick="window.location.href='menu.html'"
-            style="background-color: #555; color:white; padding:12px; border:none; border-radius:10px; width:100%; font-size:1rem; cursor:pointer;">Abbrechen
+        <button onclick="saveProfile()" style="background-color: #26890c; color:white;">Speichern & zurück 💾</button>
+        <button onclick="window.location.href='menu.html'" style="background-color: #555; color:white;">Abbrechen
             ❌</button>
     </div>
 
@@ -53,6 +116,13 @@
         let oldKey = oldName.toLowerCase();
         let playerData = null;
 
+        function showError(message) {
+            const banner = document.getElementById("error-banner");
+            banner.innerText = message;
+            banner.style.display = "block";
+            setTimeout(() => { banner.style.display = "none"; }, 4000);
+        }
+
         db.ref("players/" + oldKey).once("value", (snapshot) => {
             playerData = snapshot.val();
             if (playerData) {
@@ -65,15 +135,15 @@
             let newName = document.getElementById("profile-name").value.trim();
             let newAge = parseInt(document.getElementById("profile-age").value);
 
-            if (!newName) { alert("Bitte gib einen Namen ein!"); return; }
-            if (!newAge || newAge < 1) { alert("Bitte gib ein gültiges Alter ein!"); return; }
+            if (!newName) { showError("Bitte gib einen Namen ein!"); return; }
+            if (!newAge || newAge < 1) { showError("Bitte gib ein gültiges Alter ein!"); return; }
 
             let newKey = newName.toLowerCase();
 
             if (newKey !== oldKey) {
                 db.ref("players/" + newKey).once("value", (snapshot) => {
                     if (snapshot.exists()) {
-                        alert("Dieser Name ist bereits vergeben!");
+                        showError("Dieser Name ist bereits vergeben!");
                     } else {
                         playerData.name = newName;
                         playerData.age = newAge;

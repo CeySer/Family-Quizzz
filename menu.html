@@ -5,10 +5,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hauptmenü - Family Quizzz</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- Firebase-Verbindungen für die Bestenlisten-Synchronisierung -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #0f111a;
+            color: #ffffff;
+            margin: 0;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
         .admin-panel {
             background-color: #1f4068;
             padding: 15px;
@@ -42,6 +57,9 @@
             min-height: 85px;
             font-weight: bold;
             transition: all 0.2s ease-in-out;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
         }
 
         .cat-count {
@@ -58,6 +76,29 @@
             gap: 10px;
             margin-top: 8px;
         }
+
+        .setup-section {
+            background-color: #16213e;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .setup-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ff6b81;
+            margin-bottom: 8px;
+        }
+
+        .opt-btn {
+            background-color: #16213e;
+            border: 2px solid #1368ce;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
     </style>
 </head>
 
@@ -71,7 +112,7 @@
             <div class="admin-q-list" id="admin-questions-container">Lade Fragen...</div>
         </div>
 
-        <!-- USER HEADER WITH BUTTONS -->
+        <!-- BENUTZER-PROFIL-ZEILE -->
         <div class="user-profile-header"
             style="display: flex; align-items: center; justify-content: space-between; background: #16213e; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -84,7 +125,7 @@
                 </div>
             </div>
 
-            <!-- BUTTON BEREICH -->
+            <!-- BUTTON-BEREICH -->
             <div style="display: flex; gap: 5px;">
                 <button
                     style="background-color:#555; padding: 8px 10px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold;"
@@ -98,7 +139,7 @@
             </div>
         </div>
 
-        <!-- RANGLISTE (FAIR-PLAY-SYSTEM) -->
+        <!-- BESTENLISTE -->
         <div class="setup-section"
             style="background-color: #1a1a2e; padding: 15px; border-radius: 12px; border: 2px solid #ffd700; margin-bottom: 20px;">
             <div class="setup-title" style="color: #ffd700; text-align: center; margin-bottom: 2px;">🏆
@@ -109,10 +150,10 @@
                 Rangliste...</div>
         </div>
 
-        <!-- MODUS WÄHLEN -->
+        <!-- MODUS-AUSWAHL -->
         <div class="setup-section">
             <div class="setup-title">1. Spiel-Modus wählen 🎮</div>
-            <div class="option-group" style="display: flex; gap: 10px; margin-top: 8px;">
+            <div style="display: flex; gap: 10px; margin-top: 8px;">
                 <button class="opt-btn active" id="mode-play" onclick="setGameMode('spiel')"
                     style="flex: 1; padding: 12px; border-radius: 8px; border: 2px solid #ff6b81; background: #ff6b81; color: white; font-weight: bold; cursor: pointer;">🏆
                     Spiel-Modus (Coins & Zeit)</button>
@@ -122,7 +163,7 @@
             </div>
         </div>
 
-        <!-- KATEGORIEN WÄHLEN (THEMEN & LERNFELDER) -->
+        <!-- THEMEN & LERNFELDER -->
         <div class="setup-section" style="margin-top: 15px;">
             <div class="setup-title">2. Themen & Lernfelder wählen 🎒</div>
             <div class="category-grid">
@@ -152,7 +193,7 @@
                     <span class="cat-count" id="count-islam">0 Fragen</span>
                 </button>
 
-                <!-- KFZ MECHATRONIKER LERNFELDER -->
+                <!-- KFZ LERNFELDER -->
                 <button class="opt-btn cat-btn" id="cat-kfz_lf1" onclick="toggleCategory('kfz_lf1')">
                     🔧 KFZ LF 1: Wartung
                     <span class="cat-count" id="count-kfz_lf1">0 Fragen</span>
@@ -200,7 +241,6 @@
         function initMenu() {
             if (!playerName) { window.location.href = "index.html"; return; }
 
-            // Fragenanzahlen berechnen und anzeigen
             calculateQuestionCounts();
 
             if (playerName.toLowerCase() === "admin") {
@@ -230,10 +270,10 @@
             loadLeaderboard();
         }
 
+        // Liest allQuestions aus und befüllt die runden Badges unter den Themen-Buttons
         function calculateQuestionCounts() {
             if (typeof allQuestions === "undefined" || !Array.isArray(allQuestions)) return;
 
-            // Hilfsobjekt mit Zählern aufbauen
             const counts = {
                 klasse2_mathe: 0,
                 klasse2_deutsch: 0,
@@ -252,7 +292,6 @@
                 }
             });
 
-            // DOM mit den errechneten Werten füllen
             Object.keys(counts).forEach(cat => {
                 const el = document.getElementById(`count-${cat}`);
                 if (el) {

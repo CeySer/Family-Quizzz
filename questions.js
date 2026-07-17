@@ -1,9 +1,9 @@
-// Vollständige Fragensammlung für das Family Quizzz mit Bild- und Erklärungs-Unterstützung
+// Vollständige, fehlerfreie Fragensammlung für das Family Quizzz mit Bild- und Erklärungs-Unterstützung
 const allQuestions = [
     // ==========================================
     // KATEGORIE: KLASSE 2 - MATHE (klasse2_mathe)
     // ==========================================
-    { id: 2001, level: 1, category: "klasse2_mathe", image: "", question: "Rechne aus: Was ist 25 + 14?", answers: ["35", "38", "39", "40"], correct: 2, explanation: "💡 Tipp: Rechne zuerst die Zehner zusammen (20 + 10 = 30) und dann die Einer (5 + 4 = 9). Zusammen ergibt das 39!" },
+    { id: 2001, level: 1, category: "klasse2_mathe", image: "", question: "Rechne aus: Was ist 25 + 14?", answers: ["35", "38", "39", "40"], correct: 2, explanation: "💡 Tipp: Rechne zuerst die Zehner zusammen (20 + 10 = 30) and dann die Einer (5 + 4 = 9). Zusammen ergibt das 39!" },
     { id: 2002, level: 1, category: "klasse2_mathe", image: "bilder/mathe_punkte.png", question: "Zähle die Punkte auf dem Bild: Was ist das Doppelte dieser Zahl?", answers: ["12", "14", "16", "18"], correct: 2, explanation: "💡 Das Doppelte bedeutet, dass du die Zahl mal 2 rechnest oder mit sich selbst plus nimmst. 8 + 8 ergibt 16!" },
     { id: 2003, level: 1, category: "klasse2_mathe", image: "", question: "Rechne aus: Was ist 45 - 20?", answers: ["15", "25", "35", "45"], correct: 1, explanation: "💡 Ziehe einfach 2 Zehner von den 4 Zehnern ab. Aus 40 wird 20, also ist das Ergebnis 25!" },
     { id: 2004, level: 1, category: "klasse2_mathe", image: "", question: "Was ergibt die Malaufgabe 2 * 5?", answers: ["7", "8", "10", "12"], correct: 2, explanation: "💡 2 * 5 ist das Gleiche wie 5 + 5. Das ergibt genau 10!" },

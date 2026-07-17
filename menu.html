@@ -5,16 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hauptmenü - Family Quizzz</title>
-    <!-- Firebase-Verbindungen für die Bestenlisten-Synchronisierung -->
+    <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
+        /* Integriertes Ausweich-Design für maximale Zuverlässigkeit */
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background-color: #0f111a;
             color: #ffffff;
             margin: 0;
             padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             box-sizing: border-box;
         }
 
@@ -48,6 +53,38 @@
             padding: 6px 0;
         }
 
+        .setup-section {
+            background-color: #16213e;
+            padding: 15px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            border: 1px solid #1f4068;
+        }
+
+        .setup-title {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: #ff6b81;
+            margin-bottom: 8px;
+        }
+
+        .opt-btn {
+            background: #1a1a2e;
+            color: #94a3b8;
+            border: 2px solid #1f4068;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .opt-btn.active {
+            border-color: #ff6b81;
+            background: #ff6b81;
+            color: white;
+        }
+
         .cat-btn {
             display: flex;
             flex-direction: column;
@@ -57,9 +94,6 @@
             min-height: 85px;
             font-weight: bold;
             transition: all 0.2s ease-in-out;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
         }
 
         .cat-count {
@@ -76,29 +110,6 @@
             gap: 10px;
             margin-top: 8px;
         }
-
-        .setup-section {
-            background-color: #16213e;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-
-        .setup-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #ff6b81;
-            margin-bottom: 8px;
-        }
-
-        .opt-btn {
-            background-color: #16213e;
-            border: 2px solid #1368ce;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
     </style>
 </head>
 
@@ -112,62 +123,69 @@
             <div class="admin-q-list" id="admin-questions-container">Lade Fragen...</div>
         </div>
 
-        <!-- BENUTZER-PROFIL-ZEILE -->
+        <!-- USER HEADER WITH BUTTONS -->
         <div class="user-profile-header"
-            style="display: flex; align-items: center; justify-content: space-between; background: #16213e; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px;">
+            style="display: flex; align-items: center; justify-content: space-between; background: #16213e; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #1f4068;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div id="mini-avatar" style="font-size: 2rem;">🧑</div>
+                <div id="mini-avatar" style="font-size: 2.2rem;">🧑</div>
                 <div>
                     <span id="welcome-text"
-                        style="font-weight: bold; font-size: 1.2rem; color: #ff6b81;">Lade...</span><br>
+                        style="font-weight: bold; font-size: 1.25rem; color: #ff6b81;">Lade...</span><br>
                     <span style="color: #ffd700; font-weight: bold;">🪙 <span id="menu-coins">0</span> Coins</span>
                     <span id="user-age-tag" style="margin-left: 5px; color:#aaa; font-size:0.8rem;"></span>
                 </div>
             </div>
 
-            <!-- BUTTON-BEREICH -->
+            <!-- BUTTON BEREICH -->
             <div style="display: flex; gap: 5px;">
                 <button
-                    style="background-color:#555; padding: 8px 10px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold;"
+                    style="background-color:#475569; padding: 8px 12px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold;"
                     onclick="window.location.href='profile.html'">Profil ⚙️</button>
                 <button
-                    style="background-color:#1368ce; padding: 8px 10px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold;"
+                    style="background-color:#1368ce; padding: 8px 12px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold;"
                     id="shop-btn" onclick="window.location.href='avatar.html'">Shop 🎨</button>
                 <button
-                    style="background-color:#e94560; padding: 8px 10px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold;"
+                    style="background-color:#e94560; padding: 8px 12px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold;"
                     onclick="logout()">Abmelden 🔄</button>
             </div>
         </div>
 
-        <!-- BESTENLISTE -->
-        <div class="setup-section"
-            style="background-color: #1a1a2e; padding: 15px; border-radius: 12px; border: 2px solid #ffd700; margin-bottom: 20px;">
+        <!-- RANGLISTE -->
+        <div class="setup-section" style="background-color: #1a1a2e; border: 2px solid #ffd700;">
             <div class="setup-title" style="color: #ffd700; text-align: center; margin-bottom: 2px;">🏆
                 Familien-Bestenliste 🏆</div>
-            <p style="text-align: center; font-size: 0.75rem; color: #aaa; margin-top: 0;">(Faire Alters-Punkte: Jüngere
-                bekommen mehr Sterne pro Frage!)</p>
-            <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">Lade
-                Rangliste...</div>
+            <p style="text-align: center; font-size: 0.75rem; color: #aaa; margin-top: 0; margin-bottom: 8px;">(Faire
+                Alters-Punkte: Jüngere bekommen mehr Sterne pro Frage!)</p>
+            <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 8px;">Lade Rangliste...</div>
         </div>
 
-        <!-- MODUS-AUSWAHL -->
+        <!-- DEDIZIERTER BEREICH FÜR VOKABELTRAINER -->
+        <div class="setup-section" style="background-color: #1e1b4b; border: 2px solid #6366f1; text-align: center;">
+            <div class="setup-title" style="color: #818cf8; margin-bottom: 5px; font-size: 1.2rem;">📖 Vokabel-Trainer!
+                🇬🇧 🇹🇷</div>
+            <p style="font-size: 0.85rem; color: #cbd5e1; margin-top: 0; margin-bottom: 12px;">
+                Lerne Vokabeln mit sprechenden Karteikarten, Wort-Quizzes und dem Tipp-Trainer!
+            </p>
+            <button onclick="window.location.href='vokabeln.html'"
+                style="background: #4f46e5; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(79,70,229,0.3); transition: transform 0.1s;">Vokabeln
+                lernen & Coins verdienen ➔</button>
+        </div>
+
+        <!-- MODUS WÄHLEN -->
         <div class="setup-section">
             <div class="setup-title">1. Spiel-Modus wählen 🎮</div>
-            <div style="display: flex; gap: 10px; margin-top: 8px;">
-                <button class="opt-btn active" id="mode-play" onclick="setGameMode('spiel')"
-                    style="flex: 1; padding: 12px; border-radius: 8px; border: 2px solid #ff6b81; background: #ff6b81; color: white; font-weight: bold; cursor: pointer;">🏆
+            <div class="option-group" style="display: flex; gap: 10px; margin-top: 8px;">
+                <button class="opt-btn active" id="mode-play" onclick="setGameMode('spiel')" style="flex: 1;">🏆
                     Spiel-Modus (Coins & Zeit)</button>
                 <button class="opt-btn" id="mode-learn" onclick="setGameMode('lernen')"
-                    style="flex: 1; padding: 12px; border-radius: 8px; border: 2px solid #26890c; background: #16213e; color: white; font-weight: bold; cursor: pointer;">📖
-                    Lern-Modus (15m Kisten)</button>
+                    style="flex: 1; border-color: #26890c; color: #94a3b8;">📖 Lern-Modus (15m Kisten)</button>
             </div>
         </div>
 
-        <!-- THEMEN & LERNFELDER -->
+        <!-- KATEGORIEN WÄHLEN -->
         <div class="setup-section" style="margin-top: 15px;">
             <div class="setup-title">2. Themen & Lernfelder wählen 🎒</div>
             <div class="category-grid">
-                <!-- SCHULE KLASSE 2 -->
                 <button class="opt-btn cat-btn active" id="cat-klasse2_mathe" onclick="toggleCategory('klasse2_mathe')">
                     🏫 Klasse 2: Mathe
                     <span class="cat-count" id="count-klasse2_mathe">0 Fragen</span>
@@ -176,14 +194,10 @@
                     🏫 Kl. 2: Deutsch
                     <span class="cat-count" id="count-klasse2_deutsch">0 Fragen</span>
                 </button>
-
-                <!-- SCHULE KLASSE 5 -->
                 <button class="opt-btn cat-btn" id="cat-klasse5_englisch" onclick="toggleCategory('klasse5_englisch')">
                     🇬🇧 Klasse 5: Englisch
                     <span class="cat-count" id="count-klasse5_englisch">0 Fragen</span>
                 </button>
-
-                <!-- SPRACHEN & ISLAM -->
                 <button class="opt-btn cat-btn" id="cat-sprachen" onclick="toggleCategory('sprachen')">
                     🗣️ Sprachen
                     <span class="cat-count" id="count-sprachen">0 Fragen</span>
@@ -192,8 +206,6 @@
                     🕌 Islam
                     <span class="cat-count" id="count-islam">0 Fragen</span>
                 </button>
-
-                <!-- KFZ LERNFELDER -->
                 <button class="opt-btn cat-btn" id="cat-kfz_lf1" onclick="toggleCategory('kfz_lf1')">
                     🔧 KFZ LF 1: Wartung
                     <span class="cat-count" id="count-kfz_lf1">0 Fragen</span>
@@ -214,186 +226,11 @@
         </div>
 
         <button onclick="startQuiz()"
-            style="background: #26890c; color: white; padding: 18px; font-size: 1.3rem; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px;">Spiel
+            style="background: #26890c; color: white; padding: 18px; font-size: 1.3rem; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; box-shadow: 0 5px 15px rgba(38,137,12,0.4);">Spiel
             starten! 🚀</button>
     </div>
 
     <script src="questions.js"></script>
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
-            authDomain: "family-quizzz-80c40.firebaseapp.com",
-            databaseURL: "https://family-quizzz-80c40-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "family-quizzz-80c40",
-            storageBucket: "family-quizzz-80c40.firebasestorage.app",
-            messagingSenderId: "30751445599",
-            appId: "1:30751445599:web:28636f46555f5df49881ea"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        let playerName = sessionStorage.getItem("current_quiz_player");
-        let currentPlayer = null;
-        let selectedCategories = ["klasse2_mathe"];
-        let gameMode = "spiel";
-
-        function initMenu() {
-            if (!playerName) { window.location.href = "index.html"; return; }
-
-            calculateQuestionCounts();
-
-            if (playerName.toLowerCase() === "admin") {
-                document.getElementById("admin-box").style.display = "block";
-                document.getElementById("welcome-text").innerText = "Chef (Admin)";
-                document.getElementById("mini-avatar").innerText = "⚙️";
-                document.getElementById("shop-btn").style.display = "none";
-                loadAdminQuestions();
-            } else {
-                db.ref("players/" + playerName.toLowerCase()).on("value", (snapshot) => {
-                    currentPlayer = snapshot.val();
-                    if (!currentPlayer) return;
-
-                    document.getElementById("welcome-text").innerText = currentPlayer.name;
-                    document.getElementById("menu-coins").innerText = currentPlayer.coins || 0;
-                    document.getElementById("user-age-tag").innerText = `(${currentPlayer.age || '?'} J.)`;
-
-                    selectedCategories = currentPlayer.lastCategories || ["klasse2_mathe"];
-                    updateCategoryButtons();
-
-                    let base = currentPlayer.avatar ? currentPlayer.avatar.base || "🧑" : "🧑";
-                    let hat = currentPlayer.avatar ? currentPlayer.avatar.hat || "" : "";
-                    let glasses = currentPlayer.avatar ? currentPlayer.avatar.glasses || "" : "";
-                    document.getElementById("mini-avatar").innerText = `${base}${hat}${glasses}`;
-                });
-            }
-            loadLeaderboard();
-        }
-
-        // Liest allQuestions aus und befüllt die runden Badges unter den Themen-Buttons
-        function calculateQuestionCounts() {
-            if (typeof allQuestions === "undefined" || !Array.isArray(allQuestions)) return;
-
-            const counts = {
-                klasse2_mathe: 0,
-                klasse2_deutsch: 0,
-                klasse5_englisch: 0,
-                sprachen: 0,
-                islam: 0,
-                kfz_lf1: 0,
-                kfz_lf2: 0,
-                kfz_lf3: 0,
-                kfz_lf4: 0
-            };
-
-            allQuestions.forEach(q => {
-                if (counts[q.category] !== undefined) {
-                    counts[q.category]++;
-                }
-            });
-
-            Object.keys(counts).forEach(cat => {
-                const el = document.getElementById(`count-${cat}`);
-                if (el) {
-                    el.innerText = counts[cat] === 1 ? "1 Frage" : `${counts[cat]} Fragen`;
-                }
-            });
-        }
-
-        function loadLeaderboard() {
-            db.ref("players").orderByChild("rankPoints").on("value", (snapshot) => {
-                const leaderboardContainer = document.getElementById("leaderboard-list");
-                leaderboardContainer.innerHTML = "";
-                let playersArray = [];
-
-                snapshot.forEach((childSnapshot) => {
-                    let p = childSnapshot.val();
-                    if (p.name && p.name.toLowerCase() !== "admin") { playersArray.push(p); }
-                });
-
-                playersArray.sort((a, b) => (b.rankPoints || 0) - (a.rankPoints || 0));
-                const medals = ["🥇", "🥈", "🥉"];
-
-                playersArray.forEach((player, index) => {
-                    let rankBadge = medals[index] || `#${index + 1}`;
-                    let row = document.createElement("div");
-                    row.style.cssText = `display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:${index === 0 ? '#2a2400' : '#16213e'}; border:1px solid ${index === 0 ? '#ffd700' : '#1368ce'}; border-radius:8px; font-weight:bold;`;
-
-                    let base = player.avatar ? player.avatar.base || "🧑" : "🧑";
-                    let hat = player.avatar ? player.avatar.hat || "" : "";
-                    let glasses = player.avatar ? player.avatar.glasses || "" : "";
-
-                    row.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span>${rankBadge}</span>
-                        <span style="font-size:1.3rem;">${base}${hat}${glasses}</span>
-                        <div>
-                            <span style="color:white; font-size:0.95rem;">${player.name}</span>
-                            <span style="font-size:0.7rem; color:#aaa; display:block;">(${player.age || '?'} J.)</span>
-                        </div>
-                    </div>
-                    <div style="color:#ffd700; font-size:1rem;">⭐ ${player.rankPoints || 0} Pkt.</div>
-                `;
-                    leaderboardContainer.appendChild(row);
-                });
-            });
-        }
-
-        function loadAdminQuestions() {
-            const container = document.getElementById("admin-questions-container");
-            container.innerHTML = "";
-            if (typeof allQuestions !== "undefined" && allQuestions.length > 0) {
-                allQuestions.forEach(q => {
-                    const item = document.createElement("div");
-                    item.className = "admin-q-item";
-                    item.innerHTML = `
-                    <strong>[Frage #${q.id}]</strong> [${q.category.toUpperCase()}] 
-                    <span style="color: #ff6b81;">${q.question}</span><br>
-                    <span style="color: #26890c; font-size:0.8rem;">Richtige Antwort: ${q.answers[q.correct]}</span>
-                `;
-                    container.appendChild(item);
-                });
-            }
-        }
-
-        function setGameMode(mode) {
-            gameMode = mode;
-            document.getElementById("mode-play").style.background = mode === 'spiel' ? '#ff6b81' : '#16213e';
-            document.getElementById("mode-learn").style.background = mode === 'lernen' ? '#26890c' : '#16213e';
-        }
-
-        function toggleCategory(cat) {
-            const idx = selectedCategories.indexOf(cat);
-            if (idx > -1) {
-                if (selectedCategories.length > 1) selectedCategories.splice(idx, 1);
-            } else {
-                selectedCategories.push(cat);
-            }
-            updateCategoryButtons();
-            if (currentPlayer && playerName.toLowerCase() !== "admin") {
-                db.ref("players/" + playerName.toLowerCase()).update({ lastCategories: selectedCategories });
-            }
-        }
-
-        function updateCategoryButtons() {
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                const catId = btn.id.replace('cat-', '');
-                if (selectedCategories.includes(catId)) {
-                    btn.style.background = '#1368ce'; btn.style.color = 'white';
-                } else {
-                    btn.style.background = '#16213e'; btn.style.color = '#aaa';
-                }
-            });
-        }
-
-        function startQuiz() {
-            sessionStorage.setItem("quiz_settings", JSON.stringify({ categories: selectedCategories, mode: gameMode }));
-            window.location.href = "quiz.html";
-        }
-
-        function logout() { sessionStorage.clear(); window.location.href = "index.html"; }
-        window.onload = initMenu;
-    </script>
-</body>
-
-</html>
+            apiKey: "

@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vokabel-Trainer - Family Quizzz</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        /* */
+        /* Modernes Premium Dark-Theme für optimales Lernen auf Handys und Tablets */
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 95vh;
+        }
+
+        .vokabel-container {
+            width: 100%;
+            max-width: 500px;
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .nav-btn {
+            background: #475569;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: #64748b;
+        }
+
+        .coin-display {
+            font-size: 1.25rem;
+            color: #fbbf24;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tab-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: #334155;
+            color: #94a3b8;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .tab-btn.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+
+        /* */
+        /* Themenauswahl */
+        .category-select-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            display: block;
+            text-align: left;
+            margin-bottom: 6px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .category-dropdown {
+            width: 100%;
+            padding: 12px;
+            background: #334155;
+            border: 2px solid #475569;
+            color: white;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        /* */
+        /* 3D Karteikarten-Effekt */
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 220px;
+            perspective: 1000px;
+            margin: 15px 0;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front,
+        .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+        }
+
+        .flip-card-front {
+            background-color: #1e3a8a;
+            color: white;
+            border: 3px solid #3b82f6;
+        }
+
+        .flip-card-back {
+            background-color: #31102f;
+            color: white;
+            border: 3px solid #ec4899;
+            transform: rotateY(180deg);
+        }
+
+        .word-title {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 10px 0;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+
+        .word-subtitle {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: bold;
+        }
+
+        /* */
+        /* Wort-Quiz & Tippen */
+        .quiz-option {
+            background: #334155;
+            color: white;
+            border: 2px solid #475569;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover {
+            background: #475569;
+        }
+
+        .quiz-option.correct {
+            background: #16a34a !important;
+            border-color: #22c55e !important;
+        }
+
+        .quiz-option.wrong {
+            background: #dc2626 !important;
+            border-color: #ef4444 !important;
+        }
+
+        .input-box {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: 2px solid #475569;
+            border-radius: 12px;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        .input-box:focus {
+            border-color: #3b82f6;
+        }
+
+        .submit-btn {
+            background: #10b981;
+            color: white;
+            font-size: 1.15rem;
+            font-weight: bold;
+            padding: 14px 25px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            transition: background 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: #059669;
+        }
+
+        .speech-btn {
+            background: #6366f1;
+            border: none;
+            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);
+            transition: transform 0.1s;
+        }
+
+        .speech-btn:active {
+            transform: scale(0.9);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="vokabel-container">
+        <!-- HEADER -->
+        <div class="header-bar">
+            <button class="nav-btn" onclick="window.location.href='menu.html'">🏠 Menü</button>
+            <span class="coin-display">🪙 <span id="user-coins">0</span></span>
+        </div>
+
+        <h2 style="color: #60a5fa; margin-top: 0; margin-bottom: 15px;">Vokabel-Trainer 📖</h2>
+
+        <!-- SPRACH-AUSWAHL -->
+        <div class="tab-group" id="lang-selector">
+            <button class="tab-btn active" onclick="setLanguage('en')">🇬🇧 Englisch</button>
+            <button class="tab-btn" onclick="setLanguage('tr')">🇹🇷 Türkisch</button>
+        </div>
+
+        <!-- THEMENAUSWAHL -->
+        <span class="category-select-label">Wähle ein Thema:</span>
+        <select id="category-dropdown" class="category-dropdown" onchange="selectCategory(this.value)">
+            <!-- Wird dynamisch mit Themen aus dem Buch gefüllt -->
+        </select>
+
+        <!-- MODUS-AUSWAHL -->
+        <div class="tab-group" id="mode-selector">
+            <button class="tab-btn active" onclick="setMode('cards')">🎴 Karten</button>
+            <button class="tab-btn" onclick="setMode('quiz')">🎯 Quiz</button>
+            <button class="tab-btn" onclick="setMode('type')">⌨️ Tippen</button>
+        </div>
+
+        <!-- SPIELFELD -->
+        <div id="vokabel-box">
+            <!-- HIER WIRD DYNAMISCH GENERIERT -->
+        </div>
+
+        <!-- FORTSCHRITT -->
+        <div style="margin-top: 20px; font-size: 0.95rem; color: #94a3b8; font-weight: bold;">
+            Vokabel <span id="current-index-display">1</span> von <span id="total-display">0</span>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
+            authDomain: "family-quizzz-80c40.firebaseapp.com",
+            databaseURL: "https://family-quizzz-80c40-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "family-quizzz-80c40",
+            storageBucket: "family-quizzz-80c40.firebasestorage.app",
+            messagingSenderId: "30751445599",
+            appId: "1:30751445599:web:28636f46555f5df49881ea"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let playerName = sessionStorage.getItem("current_quiz_player");
+        let currentPlayer = null;
+
+        // DEFINIERTE KATEGORIEN & ECHTE VOKABELN AUS DEINEN BUCH-SEITEN (ENGLISCH & TÜRKISCH)
+        const vocabData = {
+            en: {
+                numbers: {
+                    label: "🔢 Zahlen (Numbers)",
+                    words: [
+                        { de: "Eins", foreign: "one" }, { de: "Zwei", foreign: "two" }, { de: "Drei", foreign: "three" },
+                        { de: "Vier", foreign: "four" }, { de: "Fünf", foreign: "five" }, { de: "Sechs", foreign: "six" },
+                        { de: "Sieben", foreign: "seven" }, { de: "Acht", foreign: "eight" }, { de: "Neun", foreign: "nine" },
+                        { de: "Zehn", foreign: "ten" }, { de: "Elf", foreign: "eleven" }, { de: "Zwölf", foreign: "twelve" },
+                        { de: "Dreizehn", foreign: "thirteen" }, { de: "Vierzehn", foreign: "fourteen" },
+                        { de: "Fünfzehn", foreign: "fifteen" }, { de: "Zwanzig", foreign: "twenty" },
+                        { de: "Dreißig", foreign: "thirty" }, { de: "Vierzig", foreign: "forty" },
+                        { de: "Fünfzig", foreign: "fifty" }, { de: "Einhundert", foreign: "one hundred" },
+                        { de: "Eintausend", foreign: "one thousand" }
+                    ]
+                },
+                colours: {
+                    label: "🎨 Farben (Colours)",
+                    words: [
+                        { de: "Schwarz", foreign: "black" }, { de: "Blau", foreign: "blue" }, { de: "Braun", foreign: "brown" },
+                        { de: "Grün", foreign: "green" }, { de: "Grau", foreign: "grey" }, { de: "Orange", foreign: "orange" },
+                        { de: "Rosa", foreign: "pink" }, { de: "Lila", foreign: "purple" }, { de: "Rot", foreign: "red" },
+                        { de: "Weiß", foreign: "white" }, { de: "Gelb", foreign: "yellow" }
+                    ]
+                },
+                school: {
+                    label: "🎒 In der Schule (At school)",
+                    words: [
+                        { de: "Tafel", foreign: "board" }, { de: "Buch", foreign: "book" }, { de: "Bücherregal", foreign: "bookshelf" },
+                        { de: "Stuhl", foreign: "chair" }, { de: "Buntstift", foreign: "coloured pencil" },
+                        { de: "Computer", foreign: "computer" }, { de: "Schrank", foreign: "cupboard" },
+                        { de: "Tisch", foreign: "table" }, { de: "Tür", foreign: "door" }, { de: "Heft", foreign: "exercise book" },
+                        { de: "Kleber", foreign: "glue" }, { de: "Füller / Stift", foreign: "pen" }, { de: "Bleistift", foreign: "pencil" },
+                        { de: "Federmäppchen", foreign: "pencil case" }, { de: "Anspitzer", foreign: "pencil sharpener" },
+                        { de: "Radiergummi", foreign: "rubber" }, { de: "Lineal", foreign: "ruler" }, { de: "Schultasche", foreign: "schoolbag" },
+                        { de: "Schere", foreign: "scissors" }, { de: "Fenster", foreign: "window" }
+                    ]
+                },
+                animals: {
+                    label: "🦁 Tiere (Zoo & Hof)",
+                    words: [
+                        { de: "Bär", foreign: "bear" }, { de: "Krokodil", foreign: "crocodile" }, { de: "Elefant", foreign: "elephant" },
+                        { de: "Giraffe", foreign: "giraffe" }, { de: "Nilpferd", foreign: "hippo" }, { de: "Löwe", foreign: "lion" },
+                        { de: "Affe", foreign: "monkey" }, { de: "Seehund", foreign: "seal" }, { de: "Schlange", foreign: "snake" },
+                        { de: "Tiger", foreign: "tiger" }, { de: "Schildkröte", foreign: "tortoise" }, { de: "Zebra", foreign: "zebra" },
+                        { de: "Katze", foreign: "cat" }, { de: "Hund", foreign: "dog" }, { de: "Meerschweinchen", foreign: "guinea pig" },
+                        { de: "Hamster", foreign: "hamster" }, { de: "Maus", foreign: "mouse" }, { de: "Pferd", foreign: "horse" },
+                        { de: "Schwein", foreign: "pig" }, { de: "Schaf", foreign: "sheep" }, { de: "Esel", foreign: "donkey" }
+                    ]
+                },
+                clothes: {
+                    label: "👕 Kleidung (Clothes)",
+                    words: [
+                        { de: "Kappe", foreign: "cap" }, { de: "Kleid", foreign: "dress" }, { de: "Jacke", foreign: "jacket" },
+                        { de: "Pullover", foreign: "pullover" }, { de: "Regenmantel", foreign: "raincoat" }, { de: "Schal", foreign: "scarf" },
+                        { de: "Rock", foreign: "skirt" }, { de: "Badehose / Badeanzug", foreign: "swimming costume" },
+                        { de: "T-Shirt", foreign: "T-shirt" }, { de: "Wintermütze", foreign: "woolly hat" },
+                        { de: "Handschuhe", foreign: "gloves" }, { de: "Jeans", foreign: "jeans" }, { de: "Schuhe", foreign: "shoes" },
+                        { de: "Socken", foreign: "socks" }, { de: "Sonnenbrille", foreign: "sunglasses" }, { de: "Hose", foreign: "trousers" }
+                    ]
+                },
+                weather: {
+                    label: "☁️ Wetter (Weather)",
+                    words: [
+                        { de: "windig", foreign: "windy" }, { de: "Regenschirm", foreign: "umbrella" }, { de: "regnerisch", foreign: "rainy" },
+                        { de: "schneereich", foreign: "snowy" }, { de: "stürmisch", foreign: "stormy" }, { de: "sonnig", foreign: "sunny" },
+                        { de: "Gewitter", foreign: "thunder and lightning" }, { de: "bewölkt", foreign: "cloudy" },
+                        { de: "kalt", foreign: "cold" }, { de: "heiß", foreign: "hot" }, { de: "Regenbogen", foreign: "rainbow" }
+                    ]
+                },
+                body: {
+                    label: "🧑 Körper (My body)",
+                    words: [
+                        { de: "Haare", foreign: "hair" }, { de: "Gesicht", foreign: "face" }, { de: "Ohr", foreign: "ear" },
+                        { de: "Nase", foreign: "nose" }, { de: "Mund", foreign: "mouth" }, { de: "Auge", foreign: "eye" },
+                        { de: "Zahn", foreign: "tooth" }, { de: "Lippe", foreign: "lip" }, { de: "Kinn", foreign: "chin" },
+                        { de: "Schulter", foreign: "shoulder" }, { de: "Arm", foreign: "arm" }, { de: "Bauch", foreign: "belly" },
+                        { de: "Bein", foreign: "leg" }, { de: "Knie", foreign: "knee" }, { de: "Zeh", foreign: "toe" },
+                        { de: "Fuß", foreign: "foot" }, { de: "Hand", foreign: "hand" }, { de: "Finger", foreign: "finger" }
+                    ]
+                },
+                food: {
+                    label: "🍎 Essen & Trinken (Food)",
+                    words: [
+                        { de: "Tomate", foreign: "tomato" }, { de: "Erbsen", foreign: "peas" }, { de: "Kartoffel", foreign: "potato" },
+                        { de: "Kürbis", foreign: "pumpkin" }, { de: "Gurke", foreign: "cucumber" }, { de: "Zwiebel", foreign: "onion" },
+                        { de: "Karotte", foreign: "carrot" }, { de: "Pflaume", foreign: "plum" }, { de: "Erdbeere", foreign: "strawberry" },
+                        { de: "Wassermelone", foreign: "watermelon" }, { de: "Pfirsich", foreign: "peach" }, { de: "Birne", foreign: "pear" },
+                        { de: "Ananas", foreign: "pineapple" }, { de: "Weintrauben", foreign: "grapes" }, { de: "Zitrone", foreign: "lemon" },
+                        { de: "Apfel", foreign: "apple" }, { de: "Banane", foreign: "banana" }, { de: "Kirsche", foreign: "cherry" },
+                        { de: "Kaffee", foreign: "coffee" }, { de: "Heiße Schokolade", foreign: "hot chocolate" },
+                        { de: "Eistee", foreign: "ice tea" }, { de: "Milch", foreign: "milk" }, { de: "Wasser", foreign: "water" },
+                        { de: "Orangensaft", foreign: "orange juice" }, { de: "Tee", foreign: "tea" }, { de: "Pizza", foreign: "pizza" },
+                        { de: "Brot", foreign: "bread" }, { de: "Butter", foreign: "butter" }, { de: "Käse", foreign: "cheese" },
+                        { de: "Ei", foreign: "egg" }
+                    ]
+                },
+                family: {
+                    label: "👨‍👩‍👧 Familie (My family)",
+                    words: [
+                        { de: "Großeltern", foreign: "grandparents" }, { de: "Oma", foreign: "grandmother" },
+                        { de: "Opa", foreign: "grandfather" }, { de: "Eltern", foreign: "parents" }, { de: "Mutter", foreign: "mother" },
+                        { de: "Vater", foreign: "father" }, { de: "Bruder", foreign: "brother" }, { de: "Schwester", foreign: "sister" },
+                        { de: "Kind", foreign: "child" }, { de: "Kinder", foreign: "children" }
+                    ]
+                },
+                christmas: {
+                    label: "🎄 Weihnachten (Christmas)",
+                    words: [
+                        { de: "Weihnachtsmann", foreign: "Santa Claus" }, { de: "Schlitten", foreign: "sleigh" },
+                        { de: "Geschenk", foreign: "present" }, { de: "Rentier", foreign: "reindeer" }, { de: "Sack", foreign: "sack" },
+                        { de: "Kerze", foreign: "candle" }, { de: "Glocke", foreign: "bell" }, { de: "Weihnachtsbaum", foreign: "Christmas tree" }
+                    ]
+                }
+            },
+            tr: {
+                numbers: {
+                    label: "🔢 Sayılar (Zahlen)",
+                    words: [
+                        { de: "Eins", foreign: "bir" }, { de: "Zwei", foreign: "iki" }, { de: "Drei", foreign: "üç" },
+                        { de: "Vier", foreign: "dört" }, { de: "Fünf", foreign: "beş" }, { de: "Sechs", foreign: "altı" },
+                        { de: "Sieben", foreign: "yedi" }, { de: "Acht", foreign: "sekiz" }, { de: "Neun", foreign: "dokuz" },
+                        { de: "Zehn", foreign: "on" }, { de: "Elf", foreign: "on bir" }, { de: "Zwölfe", foreign: "on iki" },
+                        { de: "Yirmi", foreign: "zwanzig" }, { de: "Yüz", foreign: "einhundert" }, { de: "Bin", foreign: "eintausend" }
+                    ]
+                },
+                colours: {
+                    label: "🎨 Renkler (Farben)",
+                    words: [
+                        { de: "Schwarz", foreign: "siyah" }, { de: "Blau", foreign: "mavi" }, { de: "Braun", foreign: "kahverengi" },
+                        { de: "Grün", foreign: "yeşil" }, { de: "Grau", foreign: "gri" }, { de: "Orange", foreign: "turuncu" },
+                        { de: "Rosa", foreign: "pembe" }, { de: "Lila", foreign: "mor" }, { de: "Rot", foreign: "kırmızı" },
+                        { de: "Weiß", foreign: "beyaz" }, { de: "Gelb", foreign: "sarı" }
+                    ]
+                },
+                school: {
+                    label: "🎒 Okulda (In der Schule)",
+                    words: [
+                        { de: "Tafel", foreign: "tahta" }, { de: "Buch", foreign: "kitap" }, { de: "Stuhl", foreign: "sandalye" },
+                        { de: "Computer", foreign: "bilgisayar" }, { de: "Tisch", foreign: "masa" }, { de: "Tür", foreign: "kapı" },
+                        { de: "Stift / Kalem", foreign: "kalem" }, { de: "Federmäppchen", foreign: "kalemlik" },
+                        { de: "Radiergummi", foreign: "silgi" }, { de: "Lineal", foreign: "cetvel" },
+                        { de: "Schultasche", foreign: "okul çantası" }, { de: "Schere", foreign: "makas" },
+                        { de: "Fenster", foreign: "pencere" }
+                    ]
+                },
+                animals: {
+                    label: "🦁 Hayvanlar (Tiere)",
+                    words: [
+                        { de: "Bär", foreign: "ayı" }, { de: "Krokodil", foreign: "timsah" }, { de: "Elefant", foreign: "fil" },
+                        { de: "Giraffe", foreign: "zürafa" }, { de: "Löwe", foreign: "aslan" }, { de: "Affe", foreign: "maymun" },
+                        { de: "Schlange", foreign: "yılan" }, { de: "Tiger", foreign: "kaplan" }, { de: "Zebra", foreign: "zebra" },
+                        { de: "Katze", foreign: "kedi" }, { de: "Hund", foreign: "köpek" }, { de: "Pferd", foreign: "at" },
+                        { de: "Schwein", foreign: "domuz" }, { de: "Schaf", foreign: "koyun" }, { de: "Maus", foreign: "fare" },
+                        { de: "Kaninchen", foreign: "tavşan" }, { de: "Spinne", foreign: "örümcek" }
+                    ]
+                },
+                clothes: {
+                    label: "👕 Kıyafetler (Kleidung)",
+                    words: [
+                        { de: "Kappe", foreign: "şapka" }, { de: "Kleid", foreign: "elbise" }, { de: "Jacke", foreign: "ceket" },
+                        { de: "Pullover", foreign: "kazak" }, { de: "Schal", foreign: "atkı" }, { de: "Rock", foreign: "etek" },
+                        { de: "T-Shirt", foreign: "tişört" }, { de: "Handschuhe", foreign: "eldiven" }, { de: "Jeans", foreign: "kot pantolon" },
+                        { de: "Schuhe", foreign: "ayakkabı" }, { de: "Shorts", foreign: "şort" }, { de: "Socken", foreign: "çorap" },
+                        { de: "Hose", foreign: "pantolon" }
+                    ]
+                },
+                weather: {
+                    label: "☁️ Hava Durumu (Wetter)",
+                    words: [
+                        { de: "windig", foreign: "rüzgarlı" }, { de: "Regenschirm", foreign: "şemsiye" }, { de: "regnerisch", foreign: "yağmurlu" },
+                        { de: "karlı", foreign: "karlı" }, { de: "fırtınalı", foreign: "fırtınalı" }, { de: "sonnig", foreign: "güneşli" },
+                        { de: "bewölkt", foreign: "bulutlu" }, { de: "kalt", foreign: "soğuk" }, { de: "heiß", foreign: "sıcak" },
+                        { de: "Regenbogen", foreign: "gökkuşağı" }
+                    ]
+                },
+                body: {
+                    label: "🧑 Vücudum (Körper)",
+                    words: [
+                        { de: "Haare", foreign: "saç" }, { de: "Gesicht", foreign: "yüz" }, { de: "Ohr", foreign: "kulak" },
+                        { de: "Nase", foreign: "burun" }, { de: "Mund", foreign: "ağız" }, { de: "Auge", foreign: "göz" },
+                        { de: "Zahn", foreign: "diş" }, { de: "Lippe", foreign: "dudak" }, { de: "Arm", foreign: "kol" },
+                        { de: "Bauch", foreign: "karın" }, { de: "Vücut (Körper)", foreign: "vücut" }, { de: "Bein", foreign: "bacak" },
+                        { de: "Knie", foreign: "diz" }, { de: "Ayak parmağı", foreign: "ayak parmağı" },
+                        { de: "Fuß", foreign: "ayak" }, { de: "Hand", foreign: "el" }, { de: "Finger", foreign: "parmak" },
+                        { de: "Hals", foreign: "boyun" }
+                    ]
+                },
+                food: {
+                    label: "🍎 Yiyecek ve İçecekler (Essen & Trinken)",
+                    words: [
+                        { de: "Tomate", foreign: "domates" }, { de: "Erbsen", foreign: "bezelye" }, { de: "Kartoffel", foreign: "patates" },
+                        { de: "Gurke", foreign: "salatalık" }, { de: "Zwiebel", foreign: "soğan" }, { de: "Karotte", foreign: "havuç" },
+                        { de: "Pflaume", foreign: "erik" }, { de: "Erdbeere", foreign: "çilek" }, { de: "Wassermelone", foreign: "karpuz" },
+                        { de: "Pfirsich", foreign: "şeftali" }, { de: "Birne", foreign: "armut" }, { de: "Ananas", foreign: "ananas" },
+                        { de: "Weintrauben", foreign: "üzüm" }, { de: "Zitrone", foreign: "limon" }, { de: "Orange", foreign: "portakal" },
+                        { de: "Apfel", foreign: "elma" }, { de: "Banane", foreign: "muz" }, { de: "Kirsche", foreign: "kiraz" },
+                        { de: "Kaffee", foreign: "kahve" }, { de: "Süt (Milch)", foreign: "süt" }, { de: "Wasser", foreign: "su" },
+                        { de: "Tee", foreign: "çay" }, { de: "Pizza", foreign: "pizza" }, { de: "Brot", foreign: "ekmek" },
+                        { de: "Käse", foreign: "peynir" }, { de: "Ei", foreign: "yumurta" }
+                    ]
+                },
+                family: {
+                    label: "👨‍👩‍👧 Ailem (Familie)",
+                    words: [
+                        { de: "Büyükanne ve büyükbaba", foreign: "büyükanne ve büyükbaba" }, { de: "Oma", foreign: "büyükanne" },
+                        { de: "Opa", foreign: "büyükbaba" }, { de: "Eltern", foreign: "anne ve baba" }, { de: "Mutter", foreign: "anne" },
+                        { de: "Vater", foreign: "baba" }, { de: "Erkek kardeş", foreign: "erkek kardeş" },
+                        { de: "Schwester", foreign: "kız kardeş" }, { de: "Kind", foreign: "çocuk" }
+                    ]
+                },
+                christmas: {
+                    label: "🎄 Noel (Weihnachten)",
+                    words: [
+                        { de: "Geschenk", foreign: "hediye" }, { de: "Kerze", foreign: "mum" }, { de: "Zil (Glocke)", foreign: "zil" },
+                        { de: "Rentier", foreign: "ren geyiği" }, { de: "Schlitten", foreign: "kızak" },
+                        { de: "Lichter", foreign: "ışıklar" }, { de: "Kekse", foreign: "kurabiyeler" }
+                    ]
+                }
+            }
+        };
+
+        let activeLang = 'en';
+        let activeCategory = 'numbers';
+        let activeMode = 'cards';
+        let currentIndex = 0;
+        let quizOptions = [];
+
+        db.ref("players/" + (playerName ? playerName.toLowerCase() : "")).on("value", (snapshot) => {
+            currentPlayer = snapshot.val();
+            if (currentPlayer) {
+                document.getElementById("user-coins").innerText = currentPlayer.coins || 0;
+            }
+        });
+
+        // Füllt die Themen-Box basierend auf der Sprache
+        function populateCategories() {
+            const dropdown = document.getElementById("category-dropdown");
+            dropdown.innerHTML = "";
+
+            const categories = vocabData[activeLang];
+            Object.keys(categories).forEach(key => {
+                const option = document.createElement("option");
+                option.value = key;
+                option.innerText = categories[key].label;
+                if (key === activeCategory) option.selected = true;
+                dropdown.appendChild(option);
+            });
+        }
+
+        function setLanguage(lang) {
+            activeLang = lang;
+            document.querySelectorAll('#lang-selector .tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            populateCategories();
+            currentIndex = 0;
+            loadVocab();
+        }
+
+        function selectCategory(cat) {
+            activeCategory = cat;
+            currentIndex = 0;
+            loadVocab();
+        }
+
+        function setMode(mode) {
+            activeMode = mode;
+            document.querySelectorAll('#mode-selector .tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadVocab();
+        }
+
+        function loadVocab() {
+            const activeCatData = vocabData[activeLang][activeCategory];
+            const vocabList = activeCatData ? activeCatData.words : [];
+
+            document.getElementById("total-display").innerText = vocabList.length;
+            document.getElementById("current-index-display").innerText = vocabList.length > 0 ? currentIndex + 1 : 0;
+
+            const box = document.getElementById("vokabel-box");
+            box.innerHTML = "";
+
+            if (vocabList.length === 0) {
+                box.innerHTML = "<p style='color: #ef4444; font-weight: bold;'>Keine Vokabeln in dieser Kategorie vorhanden.</p>";
+                return;
+            }
+
+            const currentItem = vocabList[currentIndex];
+
+            if (activeMode === 'cards') {
+                // KARTEIKARTEN-MODUS MIT 3D FLIP & SPRACHAUSGABE
+                const cardHtml = `
+                <div class="flip-card" id="main-card" onclick="flipCard()">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <span class="word-subtitle">Deutsch</span>
+                            <div class="word-title">${currentItem.de}</div>
+                            <span style="font-size:0.85rem; color:#60a5fa;">Tippe zum Umdrehen 🔄</span>
+                        </div>
+                        <div class="flip-card-back">
+                            <span class="word-subtitle">${activeLang === 'en' ? 'Englisch 🇬🇧' : 'Türkisch 🇹🇷'}</span>
+                            <div class="word-title" id="foreign-word-text">${currentItem.foreign}</div>
+                            <div style="display:flex; gap:10px; justify-content:center;">
+                                <button class="speech-btn" onclick="speakWord(event, '${currentItem.foreign}')">🗣️</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button onclick="rewardAndNext(2)" style="background:#16a34a; color:white; border:none; padding:12px; border-radius:12px; flex:1; font-weight:bold; cursor:pointer; font-size:1rem; box-shadow: 0 4px 10px rgba(22,163,74,0.3);">Gewusst! (+2 🪙)</button>
+                    <button onclick="nextVocab()" style="background:#e11d48; color:white; border:none; padding:12px; border-radius:12px; flex:1; font-weight:bold; cursor:pointer; font-size:1rem;">Noch lernen</button>
+                </div>
+            `;
+                box.innerHTML = cardHtml;
+            } else if (activeMode === 'quiz') {
+                // QUIZ-MODUS (MULTIPLE CHOICE)
+                generateQuizOptions(currentItem, vocabList);
+                let optionsHtml = `<h3 style="margin-bottom:15px; color:#cbd5e1; font-size:1.25rem;">Was bedeutet "${currentItem.de}"?</h3>`;
+                quizOptions.forEach((opt, idx) => {
+                    optionsHtml += `<button class="quiz-option" onclick="checkQuizAnswer(this, '${opt}', '${currentItem.foreign}')">${opt}</button>`;
+                });
+                box.innerHTML = optionsHtml;
+            } else if (activeMode === 'type') {
+                // TIPP-TRAINER (EINTIPPEN)
+                const typeHtml = `
+                <h3 style="margin-bottom:15px; color:#cbd5e1; font-size:1.25rem;">Schreibe "${currentItem.de}" auf ${activeLang === 'en' ? 'Englisch' : 'Türkisch'}:</h3>
+                <input type="text" id="type-input" class="input-box" placeholder="Hier eintippen..." autocomplete="off">
+                <button class="submit-btn" onclick="checkTypedAnswer('${currentItem.foreign}')">Prüfen & 10 Coins verdienen! 🚀</button>
+            `;
+                box.innerHTML = typeHtml;
+
+                // Fokus auf das Input-Feld legen und Enter-Taste abfangen
+                const inputField = document.getElementById("type-input");
+                inputField.focus();
+                inputField.addEventListener("keypress", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        checkTypedAnswer(currentItem.foreign);
+                    }
+                });
+            }
+        }
+
+        function flipCard() {
+            document.getElementById("main-card").classList.toggle("flipped");
+        }
+
+        function speakWord(event, text) {
+            event.stopPropagation(); // Karte soll beim Klick auf den Sound nicht wieder umdrehen
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = activeLang === 'en' ? 'en-US' : 'tr-TR';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function generateQuizOptions(correctItem, list) {
+            quizOptions = [correctItem.foreign];
+            const copyList = list.filter(item => item.foreign !== correctItem.foreign);
+
+            while (quizOptions.length < Math.min(4, list.length)) {
+                const randomItem = copyList[Math.floor(Math.random() * copyList.length)];
+                if (!quizOptions.includes(randomItem.foreign)) {
+                    quizOptions.push(randomItem.foreign);
+                }
+            }
+            quizOptions.sort(() => Math.random() - 0.5);
+        }
+
+        function checkQuizAnswer(button, selected, correct) {
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach(opt => opt.disabled = true);
+
+            if (selected.trim().toLowerCase() === correct.trim().toLowerCase()) {
+                button.classList.add('correct');
+                confetti({ particleCount: 30, spread: 30 });
+                rewardAndNext(5);
+            } else {
+                button.classList.add('wrong');
+                options.forEach(opt => {
+                    if (opt.innerText.trim().toLowerCase() === correct.trim().toLowerCase()) opt.classList.add('correct');
+                });
+                setTimeout(nextVocab, 2500);
+            }
+        }
+
+        function checkTypedAnswer(correct) {
+            const input = document.getElementById("type-input");
+            const answer = input.value.trim().toLowerCase();
+
+            if (answer === correct.toLowerCase()) {
+                input.style.borderColor = "#22c55e";
+                input.style.backgroundColor = "#052e16";
+                confetti({ particleCount: 50, spread: 40 });
+                rewardAndNext(10);
+            } else {
+                input.style.borderColor = "#ef4444";
+                input.style.backgroundColor = "#450a0a";
+                input.value = `Falsch! Richtig: ${correct}`;
+                setTimeout(nextVocab, 3000);
+            }
+        }
+
+        function rewardAndNext(coinReward) {
+            if (playerName && playerName.toLowerCase() !== "admin") {
+                db.ref("players/" + playerName.toLowerCase() + "/coins").transaction((c) => {
+                    return (c || 0) + coinReward;
+                });
+            }
+            setTimeout(nextVocab, 1200);
+        }
+
+        function nextVocab() {
+            const vocabList = vocabData[activeLang][activeCategory].words;
+            currentIndex = (currentIndex + 1) % vocabList.length;
+            loadVocab();
+        }
+
+        window.onload = () => {
+            if (!playerName) {
+                window.location.href = "index.html";
+            } else {
+                populateCategories();
+                loadVocab();
+            }
+        };
+    </script>
+</body>
+
+</html>

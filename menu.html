@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zentrale - Family Quizzz</title>
+    <title>Family Quizzz - Zentrale</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
@@ -19,7 +19,7 @@
         .container {
             max-width: 500px;
             margin: 0 auto;
-            padding: 15px;
+            padding: 20px;
         }
 
         .card {
@@ -49,20 +49,29 @@
             border-top: 2px solid #334155;
         }
 
-        .btn {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 10px 20px;
+        select,
+        button {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
             border-radius: 8px;
+            border: none;
+            font-weight: bold;
+        }
+
+        .btn-start {
+            background: #10b981;
+            color: white;
             cursor: pointer;
         }
 
-        .input-mini {
-            width: 60px;
-            padding: 5px;
-            border-radius: 4px;
-            border: none;
+        .admin-item {
+            background: #334155;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
         }
     </style>
 </head>
@@ -70,33 +79,36 @@
 <body>
 
     <div class="container">
-        <!-- Home Reiter -->
         <div id="page-home" class="page active">
             <div class="card">
-                <h2>Hallo Ceyhun, willkommen zurück!</h2>
-                <select id="main-category" onchange="updateSubCategories()"></select>
+                <h3>Hallo! Was lernen wir heute?</h3>
+                <select id="main-category" onchange="updateSubCategories()">
+                    <option value="schule2">Grundschule (Klasse 2)</option>
+                    <option value="schule5">Weiterführende (Klasse 5)</option>
+                    <option value="kfz">KFZ-Ausbildung</option>
+                    <option value="allgemein">Sprachen & Religion</option>
+                </select>
                 <select id="sub-category"></select>
-                <button class="btn" onclick="startQuiz()">Quiz starten</button>
+                <button class="btn-start" onclick="startQuiz()">Quiz starten</button>
             </div>
         </div>
 
-        <!-- Eltern Reiter -->
         <div id="page-parent" class="page">
             <div class="card">
-                <h2>Eltern-Dashboard</h2>
+                <h3>Eltern-Dashboard (Admin)</h3>
                 <div id="admin-list">Lade Spieler...</div>
             </div>
         </div>
     </div>
 
     <div class="bottom-nav">
-        <button onclick="switchPage('home')">Home</button>
-        <button onclick="switchPage('parent')">Eltern</button>
+        <button onclick="switchPage('home')">🏠 Home</button>
+        <button onclick="switchPage('parent')">👨‍👩‍👦 Eltern</button>
     </div>
 
     <script src="questions.js"></script>
     <script>
-        const firebaseConfig = { /* Deine Daten hier einfügen */ };
+        const firebaseConfig = { /* Bitte hier deine Config einfügen */ };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -104,11 +116,10 @@
             const mainCat = document.getElementById("main-category").value;
             const subSelect = document.getElementById("sub-category");
             subSelect.innerHTML = "";
-            // Hier greifen wir auf allQuestions aus deiner questions.js zu
-            const subData = getCategoriesFor(mainCat);
-            subData.forEach(sub => {
+            getCategoriesFor(mainCat).forEach(sub => {
                 const count = allQuestions.filter(q => q.category === sub.value).length;
                 const opt = document.createElement("option");
+                opt.value = sub.value;
                 opt.innerText = `${sub.text} (${count} Fragen)`;
                 subSelect.appendChild(opt);
             });
@@ -119,24 +130,25 @@
             document.getElementById('page-' + p).classList.add('active');
         }
 
-        function adjustCoins(playerName, amount) {
-            db.ref('players/' + playerName).once('value', (snap) => {
-                let p = snap.val();
-                p.coins = (p.coins || 0) + parseInt(amount);
-                db.ref('players/' + playerName).set(p);
+        function adjustCoins(playerKey, change) {
+            db.ref('players/' + playerKey).once('value', (s) => {
+                let p = s.val();
+                p.coins = (p.coins || 0) + change;
+                db.ref('players/' + playerKey).set(p);
             });
         }
 
-        // Beim Laden: Spieler anzeigen für Admin
         db.ref('players').on('value', (snap) => {
             const list = document.getElementById('admin-list');
             list.innerHTML = "";
             snap.forEach(child => {
                 const p = child.val();
-                list.innerHTML += `<div>${p.name}: ${p.coins} Coins 
+                list.innerHTML += `<div class="admin-item">${p.name}: ${p.coins} Coins 
                 <button onclick="adjustCoins('${child.key}', 10)">+10</button></div>`;
             });
         });
+
+        window.onload = updateSubCategories;
     </script>
 </body>
 

@@ -9,6 +9,50 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        .quiz-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .option-btn {
+            padding: 15px;
+            background: #1f4068;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s, opacity 0.2s;
+            width: 100%;
+        }
+
+        .option-btn.correct-glow {
+            background: #26890c !important;
+            font-weight: bold;
+        }
+
+        .option-btn.wrong-glow {
+            background: #e94560 !important;
+        }
+
+        .explanation-card {
+            background: #1a1a2e;
+            border-left: 5px solid #ffd700;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: left;
+            font-size: 1rem;
+            color: #eee;
+            line-height: 1.4;
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
@@ -30,9 +74,20 @@
 
         <div id="quiz-box"
             style="background: #16213e; padding: 20px; border-radius: 15px; text-align: center; color: white;">
-            <h2 id="question-text" style="color: #ff6b81;">Lade Frage...</h2>
+            <!-- BILD-ANZEIGE -->
+            <img id="question-image" class="quiz-image" src="" alt="Quiz Bild">
+
+            <h2 id="question-text" style="color: #ff6b81; margin-top: 5px;">Lade Frage...</h2>
             <div id="options-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
             </div>
+
+            <!-- NEU: DYNAMISCHE ERKLÄRUNGS-BOX -->
+            <div id="explanation-box" class="explanation-card"></div>
+
+            <!-- FORTFAHREN BUTTON -->
+            <button id="next-btn"
+                style="display: none; margin-top: 20px; background: #ffd700; color: #111; font-weight: bold; border: none; padding: 15px; border-radius: 10px; font-size: 1.1rem; width: 100%; cursor: pointer;"
+                onclick="nextQuestion()">Nächste Frage ➔</button>
         </div>
     </div>
 
@@ -73,11 +128,11 @@
         let currentPlayer = null;
         let currentQuestionIndex = 0;
         let filteredQuestions = [];
-        let hasAnswered = false; // Flag, um Mehrfachklicks zu verhindern
+        let hasAnswered = false;
 
         let learningSeconds = 0;
         let learningInterval;
-        const SECONDS_NEEDED_FOR_CHEST = 900; // 15 Min
+        const SECONDS_NEEDED_FOR_CHEST = 900;
 
         db.ref("players/" + (playerName ? playerName.toLowerCase() : "")).on("value", (snapshot) => {
             currentPlayer = snapshot.val();
@@ -90,15 +145,12 @@
 
         function initQuiz() {
             if (typeof allQuestions === "undefined" || !Array.isArray(allQuestions) || allQuestions.length === 0) {
-                document.getElementById("question-text").innerText = "❌ Fehler: 'questions.js' wurde nicht gefunden oder ist leer!";
+                document.getElementById("question-text").innerText = "❌ Fehler: 'questions.js' fehlt!";
                 return;
             }
 
             filteredQuestions = allQuestions.filter(q => settings.categories.includes(q.category));
-
-            if (filteredQuestions.length === 0) {
-                filteredQuestions = allQuestions;
-            }
+            if (filteredQuestions.length === 0) filteredQuestions = allQuestions;
 
             showQuestion();
             if (settings.mode === "lernen" && playerName) startLearningTimer();
@@ -107,55 +159,50 @@
         function showQuestion() {
             if (filteredQuestions.length === 0) return;
             hasAnswered = false;
-
-            // Falls noch ein "Weiter"-Button da ist, entfernen wir ihn
-            const oldNextBtn = document.getElementById("next-question-btn");
-            if (oldNextBtn) oldNextBtn.remove();
+            document.getElementById("next-btn").style.display = "none";
+            document.getElementById("explanation-box").style.display = "none"; // Erklärungsbox verstecken
 
             let q = filteredQuestions[currentQuestionIndex];
             document.getElementById("question-text").innerText = `[#${q.id}] ${q.question}`;
+
+            // BILD LOGIK
+            let imgEl = document.getElementById("question-image");
+            if (q.image && q.image.trim() !== "") {
+                imgEl.src = q.image;
+                imgEl.style.display = "inline-block";
+            } else {
+                imgEl.style.display = "none";
+                imgEl.src = "";
+            }
+
             let container = document.getElementById("options-container");
             container.innerHTML = "";
 
             q.answers.forEach((ans, idx) => {
                 let btn = document.createElement("button");
                 btn.innerText = ans;
-                btn.id = "opt-" + idx; // ID für gezieltes Einfärben vergeben
-                btn.style.cssText = "padding:15px; background:#1f4068; color:white; border:none; border-radius:10px; font-size:1.1rem; cursor:pointer; transition: background 0.3s, opacity 0.3s;";
-                btn.onclick = () => handleAnswer(idx, q.correct);
+                btn.className = "option-btn";
+                btn.onclick = () => handleAnswer(btn, idx, q.correct, q.explanation);
                 container.appendChild(btn);
             });
         }
 
-        function handleAnswer(selectedIdx, correctIdx) {
+        function handleAnswer(clickedBtn, selectedIdx, correctIdx, explanationText) {
             if (hasAnswered) return;
             hasAnswered = true;
 
             let isCorrect = (selectedIdx === correctIdx);
-            let q = filteredQuestions[currentQuestionIndex];
+            let buttons = document.querySelectorAll(".option-btn");
 
-            // Alle Knöpfe stylen und deaktivieren
-            q.answers.forEach((ans, idx) => {
-                let btn = document.getElementById("opt-" + idx);
-                if (btn) {
-                    btn.disabled = true;
-                    btn.style.cursor = "default";
-
-                    if (idx === correctIdx) {
-                        // Richtige Antwort immer GRÜN färben
-                        btn.style.background = "#26890c";
-                    } else if (idx === selectedIdx && !isCorrect) {
-                        // Falsch angeklickte Antwort ROT färben
-                        btn.style.background = "#e94560";
-                    } else {
-                        // Restliche Optionen abdunkeln
-                        btn.style.opacity = "0.4";
-                    }
+            buttons.forEach((btn, idx) => {
+                btn.style.opacity = "0.4";
+                if (idx === correctIdx) {
+                    btn.className = "option-btn correct-glow";
+                    btn.style.opacity = "1";
                 }
             });
 
             if (isCorrect) {
-                // Belohnung bei richtiger Antwort
                 if (playerName && playerName.toLowerCase() !== "admin") {
                     let age = currentPlayer ? currentPlayer.age || 10 : 10;
                     let multiplier = age < 8 ? 5 : (age <= 10 ? 3 : (age <= 14 ? 2 : 1));
@@ -167,26 +214,20 @@
                         }
                         return p;
                     });
+                    confetti({ particleCount: 40, spread: 40 });
                 }
-                confetti({ particleCount: 50, spread: 50 });
-
-                // Bei richtigem Ergebnis nach 1.5 Sekunden automatisch weitergehen
-                setTimeout(nextQuestion, 1500);
+                setTimeout(nextQuestion, 1200);
             } else {
-                // Bei falschem Ergebnis den "Weiter ➔"-Button für stressfreies Lernen einblenden
-                showNextButton();
+                clickedBtn.className = "option-btn wrong-glow";
+                clickedBtn.style.opacity = "1";
+
+                // Erklärung einblenden (Falls im Datensatz vorhanden, sonst Fallback)
+                let expBox = document.getElementById("explanation-box");
+                expBox.innerText = explanationText || "💡 Schade! Beim nächsten Mal klappt es bestimmt.";
+                expBox.style.display = "block";
+
+                document.getElementById("next-btn").style.display = "block";
             }
-        }
-
-        function showNextButton() {
-            const nextBtn = document.createElement("button");
-            nextBtn.id = "next-question-btn";
-            nextBtn.innerText = "Nächste Frage ➔";
-            nextBtn.style.cssText = "padding:16px; background:#1368ce; color:white; border:none; border-radius:12px; font-size:1.2rem; font-weight:bold; cursor:pointer; margin-top:15px; width:100%; transition: transform 0.1s;";
-            nextBtn.onclick = nextQuestion;
-
-            // Fügt den Button direkt unter den Optionen ein
-            document.getElementById("quiz-box").appendChild(nextBtn);
         }
 
         function nextQuestion() {

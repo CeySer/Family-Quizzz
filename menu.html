@@ -9,7 +9,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
-        /* Integriertes Ausweich-Design für maximale Zuverlässigkeit */
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background-color: #0f111a;
@@ -177,8 +176,8 @@
             <div class="option-group" style="display: flex; gap: 10px; margin-top: 8px;">
                 <button class="opt-btn active" id="mode-play" onclick="setGameMode('spiel')" style="flex: 1;">🏆
                     Spiel-Modus (Coins & Zeit)</button>
-                <button class="opt-btn" id="mode-learn" onclick="setGameMode('lernen')"
-                    style="flex: 1; border-color: #26890c; color: #94a3b8;">📖 Lern-Modus (15m Kisten)</button>
+                <button class="opt-btn" id="mode-learn" onclick="setGameMode('lernen')" style="flex: 1;">📖 Lern-Modus
+                    (15m Kisten)</button>
             </div>
         </div>
 
@@ -233,4 +232,186 @@
     <script src="questions.js"></script>
     <script>
         const firebaseConfig = {
-            apiKey: "
+            apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
+            authDomain: "family-quizzz-80c40.firebaseapp.com",
+            databaseURL: "https://family-quizzz-80c40-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "family-quizzz-80c40",
+            storageBucket: "family-quizzz-80c40.firebasestorage.app",
+            messagingSenderId: "30751445599",
+            appId: "1:30751445599:web:28636f46555f5df49881ea"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let playerName = sessionStorage.getItem("current_quiz_player");
+        let currentPlayer = null;
+        let selectedCategories = ["klasse2_mathe"];
+        let gameMode = "spiel";
+
+        function initMenu() {
+            if (!playerName) { window.location.href = "index.html"; return; }
+
+            calculateQuestionCounts();
+
+            if (playerName.toLowerCase() === "admin") {
+                document.getElementById("admin-box").style.display = "block";
+                document.getElementById("welcome-text").innerText = "Chef (Admin)";
+                document.getElementById("mini-avatar").innerText = "⚙️";
+                document.getElementById("shop-btn").style.display = "none";
+                loadAdminQuestions();
+            } else {
+                db.ref("players/" + playerName.toLowerCase()).on("value", (snapshot) => {
+                    currentPlayer = snapshot.val();
+                    if (!currentPlayer) return;
+
+                    document.getElementById("welcome-text").innerText = currentPlayer.name;
+                    document.getElementById("menu-coins").innerText = currentPlayer.coins || 0;
+                    document.getElementById("user-age-tag").innerText = `(${currentPlayer.age || '?'} J.)`;
+
+                    selectedCategories = currentPlayer.lastCategories || ["klasse2_mathe"];
+                    updateCategoryButtons();
+
+                    let base = currentPlayer.avatar ? currentPlayer.avatar.base || "🧑" : "🧑";
+                    let hat = currentPlayer.avatar ? currentPlayer.avatar.hat || "" : "";
+                    let glasses = currentPlayer.avatar ? currentPlayer.avatar.glasses || "" : "";
+                    document.getElementById("mini-avatar").innerText = `${base}${hat}${glasses}`;
+                });
+            }
+            loadLeaderboard();
+        }
+
+        function calculateQuestionCounts() {
+            if (typeof allQuestions === "undefined" || !Array.isArray(allQuestions)) return;
+
+            const counts = {
+                klasse2_mathe: 0,
+                klasse2_deutsch: 0,
+                klasse5_englisch: 0,
+                sprachen: 0,
+                islam: 0,
+                kfz_lf1: 0,
+                kfz_lf2: 0,
+                kfz_lf3: 0,
+                kfz_lf4: 0
+            };
+
+            allQuestions.forEach(q => {
+                if (counts[q.category] !== undefined) {
+                    counts[q.category]++;
+                }
+            });
+
+            Object.keys(counts).forEach(cat => {
+                const el = document.getElementById(`count-${cat}`);
+                if (el) {
+                    el.innerText = counts[cat] === 1 ? "1 Frage" : `${counts[cat]} Fragen`;
+                }
+            });
+        }
+
+        function loadLeaderboard() {
+            db.ref("players").orderByChild("rankPoints").on("value", (snapshot) => {
+                const leaderboardContainer = document.getElementById("leaderboard-list");
+                leaderboardContainer.innerHTML = "";
+                let playersArray = [];
+
+                snapshot.forEach((childSnapshot) => {
+                    let p = childSnapshot.val();
+                    if (p.name && p.name.toLowerCase() !== "admin") { playersArray.push(p); }
+                });
+
+                playersArray.sort((a, b) => (b.rankPoints || 0) - (a.rankPoints || 0));
+                const medals = ["🥇", "🥈", "🥉"];
+
+                playersArray.forEach((player, index) => {
+                    let rankBadge = medals[index] || `#${index + 1}`;
+                    let row = document.createElement("div");
+                    row.style.cssText = `display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:${index === 0 ? '#2a2400' : '#16213e'}; border:1px solid ${index === 0 ? '#ffd700' : '#1368ce'}; border-radius:8px; font-weight:bold;`;
+
+                    let base = player.avatar ? player.avatar.base || "🧑" : "🧑";
+                    let hat = player.avatar ? player.avatar.hat || "" : "";
+                    let glasses = player.avatar ? player.avatar.glasses || "" : "";
+
+                    row.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span>${rankBadge}</span>
+                        <span style="font-size:1.3rem;">${base}${hat}${glasses}</span>
+                        <div>
+                            <span style="color:white; font-size:0.95rem;">${player.name}</span>
+                            <span style="font-size:0.7rem; color:#aaa; display:block;">(${player.age || '?'} J.)</span>
+                        </div>
+                    </div>
+                    <div style="color:#ffd700; font-size:1rem;">⭐ ${player.rankPoints || 0} Pkt.</div>
+                `;
+                    leaderboardContainer.appendChild(row);
+                });
+            });
+        }
+
+        function loadAdminQuestions() {
+            const container = document.getElementById("admin-questions-container");
+            container.innerHTML = "";
+            if (typeof allQuestions !== "undefined" && allQuestions.length > 0) {
+                allQuestions.forEach(q => {
+                    const item = document.createElement("div");
+                    item.className = "admin-q-item";
+                    item.innerHTML = `
+                    <strong>[Frage #${q.id}]</strong> [${q.category.toUpperCase()}] 
+                    <span style="color: #ff6b81;">${q.question}</span><br>
+                    <span style="color: #26890c; font-size:0.8rem;">Richtige Antwort: ${q.answers[q.correct]}</span>
+                `;
+                    container.appendChild(item);
+                });
+            }
+        }
+
+        function setGameMode(mode) {
+            gameMode = mode;
+            const playBtn = document.getElementById("mode-play");
+            const learnBtn = document.getElementById("mode-learn");
+
+            if (mode === 'spiel') {
+                playBtn.classList.add('active');
+                learnBtn.classList.remove('active');
+            } else {
+                playBtn.classList.remove('active');
+                learnBtn.classList.add('active');
+            }
+        }
+
+        function toggleCategory(cat) {
+            const idx = selectedCategories.indexOf(cat);
+            if (idx > -1) {
+                if (selectedCategories.length > 1) selectedCategories.splice(idx, 1);
+            } else {
+                selectedCategories.push(cat);
+            }
+            updateCategoryButtons();
+            if (currentPlayer && playerName.toLowerCase() !== "admin") {
+                db.ref("players/" + playerName.toLowerCase()).update({ lastCategories: selectedCategories });
+            }
+        }
+
+        function updateCategoryButtons() {
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                const catId = btn.id.replace('cat-', '');
+                if (selectedCategories.includes(catId)) {
+                    btn.style.background = '#1368ce'; btn.style.color = 'white';
+                } else {
+                    btn.style.background = '#16213e'; btn.style.color = '#aaa';
+                }
+            });
+        }
+
+        function startQuiz() {
+            sessionStorage.setItem("quiz_settings", JSON.stringify({ categories: selectedCategories, mode: gameMode }));
+            window.location.href = "quiz.html";
+        }
+
+        function logout() { sessionStorage.clear(); window.location.href = "index.html"; }
+        window.onload = initMenu;
+    </script>
+</body>
+
+</html>

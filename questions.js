@@ -4,7 +4,7 @@ const allQuestions = [
     // KATEGORIE: KLASSE 2 - MATHE (klasse2_mathe)
     // ==========================================
     { id: 2001, level: 1, category: "klasse2_mathe", image: "", question: "Rechne aus: Was ist 25 + 14?", answers: ["35", "38", "39", "40"], correct: 2, explanation: "💡 Tipp: Rechne zuerst die Zehner zusammen (20 + 10 = 30) und dann die Einer (5 + 4 = 9). Zusammen ergibt das 39!" },
-    { id: 2002, level: 1, category: "klasse2_mathe", image: "bilder/mathe_punkte.png", question: "Zähle die Punkte auf dem Bild: Was ist das Doppelte dieser Zahl?", answers: ["12", "14", "16", "18"], correct: 2, explanation: "💡 Das Doppelte bedeutet, dass du die Zahl mal 2 rechnest oder mit sich selbst plus nimmst. 8 + 8 ergibt 16!" },
+    { id: 2002, level: 1, category: "klasse2_mathe", image: "bilder/mathe_punkte.png", question: "Zähle die Punkte auf dem Bild: Was ist das Doppelte dieser Zahl?", answers: ["12", "14", "16", "18"], correct: 2, explanation: "💡 Das Doppelte bedeutet, dass du die Zahl mal 2 rechnest oder mit sich selbst plus nimmas. 8 + 8 ergibt 16!" },
     { id: 2003, level: 1, category: "klasse2_mathe", image: "", question: "Rechne aus: Was ist 45 - 20?", answers: ["15", "25", "35", "45"], correct: 1, explanation: "💡 Ziehe einfach 2 Zehner von den 4 Zehnern ab. Aus 40 wird 20, also ist das Ergebnis 25!" },
     { id: 2004, level: 1, category: "klasse2_mathe", image: "", question: "Was ergibt die Malaufgabe 2 * 5?", answers: ["7", "8", "10", "12"], correct: 2, explanation: "💡 2 * 5 ist das Gleiche wie 5 + 5. Das ergibt genau 10!" },
     { id: 2005, level: 1, category: "klasse2_mathe", image: "", question: "Was ist die Hälfte von 20?", answers: ["5", "10", "15", "20"], correct: 1, explanation: "💡 Wenn du 20 Murmeln gerecht an zwei Kinder verteilst, bekommt jeder genau 10 Stück!" },
@@ -22,7 +22,6 @@ const allQuestions = [
     { id: 2103, level: 1, category: "klasse2_deutsch", image: "", question: "Was ließ Rapunzel aus dem hohen Turm herunterfallen?", answers: ["Eine Strickleiter", "Ihre Haare", "Einen goldenen Ball", "Ein Seil"], correct: 1, explanation: "💡 Rapunzel hatte wunderschöne, extrem lange Haare. Der berühmte Spruch heißt: 'Rapunzel, lass dein Haar herunter!'" },
     { id: 2104, level: 1, category: "klasse2_deutsch", image: "", question: "Welches Wort ist ein Nomen (Namenwort)?", answers: ["laufen", "schön", "Das Haus", "schnell"], correct: 2, explanation: "💡 Das Haus ist ein Nomen! Nomen bezeichnen Gegenstände, Menschen oder Tiere und man schreibt sie immer groß." },
     { id: 2105, level: 1, category: "klasse2_deutsch", image: "", question: "Welches Tier ist 'fleißig'?", answers: ["Die Biene", "Das Faultier", "Die Schildkröte", "Der Esel"], correct: 0, explanation: "💡 Die Biene gilt als fleißig, weil sie den ganzen Tag lang von Blume zu Blume fliegt und Honig sammelt." },
-    { id: 2106, level: 2, category: "klasse2_deutsch", image: "", question: "Was ist das Gegenteil von 'fleißig'?", answers: ["nett", "faul", "stark", "klug"], correct: 1, explanation: "💡 Das Gegenteil von fleißig ist faul!" },
 
     // ==========================================
     // KATEGORIE: KLASSE 5 - ENGLISCH (klasse5_englisch)
@@ -52,7 +51,7 @@ const allQuestions = [
     // ==========================================
     // KATEGORIE: KFZ LERNFELD 2 (kfz_lf2) - Baugruppen montieren & instandsetzen
     // ==========================================
-    { id: 8201, level: 1, category: "kfz_lf2", image: "", question: "LF 2: Welches Prüfmittel misst das Ventilspiel am Verbrennungsmotor?", answers: ["Fühlerlehre", "Messschieber", "Bügelmessschraube", "Messuhr"], correct: 0, explanation: "💡 Mit den feinen Blechstreifen einer Fühlerlehre misst man das Spiel zwischen Nockenwelle und Ventil." },
+    { id: 8201, level: 1, category: "kfz_lf2", image: "", question: "LF 2: Welches Prüfmittel misst das Ventilspiel am Verbrennoonmotor?", answers: ["Fühlerlehre", "Messschieber", "Bügelmessschraube", "Messuhr"], correct: 0, explanation: "💡 Mit den feinen Blechstreifen einer Fühlerlehre misst man das Spiel zwischen Nockenwelle und Ventil." },
     { id: 8202, level: 1, category: "kfz_lf2", image: "", question: "LF 2: Welches Werkzeug wird zum festen Anziehen von Zylinderkopfschrauben benötigt?", answers: ["Schlagschrauber", "Drehmomentschlüssel", "Ratsche", "Drehmomentschraubendreher"], correct: 1, explanation: "💡 Zylinderkopfschrauben müssen exakt nach Herstellervorgaben mit einem Drehmomentschlüssel (und oft einem zusätzlichen Drehwinkel) angezogen werden." },
 
     // ==========================================

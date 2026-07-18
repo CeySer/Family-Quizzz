@@ -7,13 +7,15 @@
     <title>Quiz Arena - Family Quizzz</title>
     <link rel="stylesheet" href="style.css">
 
+    <!-- Externe Bibliotheken für Effekte und Datenbank-Verbindung -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <style>
+        /* Modernes, immersives Dark-Theme für maximale Konzentration */
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: #0f111a;
             color: #ffffff;
             margin: 0;
@@ -31,6 +33,7 @@
             margin: 0 auto;
         }
 
+        /* Bilder-Rendering mit sanften Schatten */
         .quiz-image {
             max-width: 100%;
             max-height: 220px;
@@ -41,6 +44,7 @@
             object-fit: contain;
         }
 
+        /* Antwort-Buttons mit 3D-Effekt */
         .option-btn {
             padding: 15px 20px;
             background: #1f4068;
@@ -74,6 +78,7 @@
             opacity: 1 !important;
         }
 
+        /* Info-Boxen bei falschen Antworten */
         .explanation-card {
             background: #1a1a2e;
             border-left: 5px solid #ffd700;

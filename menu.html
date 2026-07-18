@@ -5,25 +5,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zentrale - Family Quizzz & Werkstatt</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- Firebase Compat Bibliotheken -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
+        /* Modernes, hochauflösendes Dark-Theme (Tailwind-Schnitt) */
         body {
             background-color: #0f172a;
             color: #f8fafc;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             margin: 0;
-            padding-bottom: 85px;
+            padding-bottom: 90px;
         }
 
         .container {
             max-width: 500px;
             margin: 0 auto;
             padding: 15px;
+            box-sizing: border-box;
         }
 
-        /* Premium Feste Navigation unten */
+        /* Feste Navigation unten (Die 4 Menüs) */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -48,7 +50,7 @@
             flex-direction: column;
             align-items: center;
             gap: 4px;
-            transition: color 0.2s;
+            transition: color 0.2s ease;
         }
 
         .nav-item.active {
@@ -59,23 +61,37 @@
             font-size: 1.5rem;
         }
 
-        /* Seiten-Logik */
+        /* Dynamische Seiten-Umschaltung */
         .page {
             display: none;
+            animation: fadeIn 0.3s ease;
         }
 
         .page.active {
             display: block;
         }
 
-        /* Modernisierte UI-Karten */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Premium UI-Karten */
         .card {
             background: #1e293b;
             padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border-radius: 18px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
             margin-bottom: 15px;
             border: 1px solid #334155;
+            box-sizing: border-box;
         }
 
         .section-title {
@@ -88,7 +104,7 @@
             gap: 8px;
         }
 
-        /* Dropdowns & Selektoren */
+        /* Eingabefelder & Selektoren */
         select,
         input {
             width: 100%;
@@ -96,12 +112,13 @@
             background: #334155;
             border: 2px solid #475569;
             color: white;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 1rem;
             font-weight: bold;
             margin-bottom: 12px;
             outline: none;
             box-sizing: border-box;
+            transition: border-color 0.2s;
         }
 
         select:focus,
@@ -114,55 +131,64 @@
             color: white;
             border: none;
             padding: 14px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 1.1rem;
             font-weight: bold;
             width: 100%;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
         }
 
         .start-btn:hover {
             background: #059669;
         }
 
+        .start-btn:active {
+            transform: scale(0.98);
+        }
+
         /* Werkstatt Styles */
         .calc-result {
             background: #0f172a;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 15px;
+            border-radius: 10px;
             border-left: 4px solid #10b981;
             margin-top: 10px;
             font-weight: bold;
             color: #34d399;
             text-align: left;
+            line-height: 1.4;
         }
 
-        /* Eltern Dashboard Tabellen & Inputs */
+        /* Eltern/Admin Dashboard */
         .admin-player-row {
             background: #334155;
-            padding: 12px;
-            border-radius: 12px;
+            padding: 15px;
+            border-radius: 14px;
             margin-bottom: 10px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
+            border: 1px solid #475569;
         }
 
         .admin-actions {
             display: flex;
             gap: 8px;
             align-items: center;
+            margin-top: 5px;
         }
 
         .btn-action {
             background: #e2e8f0;
             color: #0f172a;
             border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
+            transition: background 0.2s;
         }
 
         .btn-action:hover {
@@ -170,12 +196,12 @@
         }
 
         .btn-danger {
-            background: #ef4444;
+            background: #f43f5e;
             color: white;
         }
 
         .btn-danger:hover {
-            background: #dc2626;
+            background: #e11d48;
         }
     </style>
 </head>
@@ -188,7 +214,7 @@
         <!-- REITER 1: HOME & LERNEN                    -->
         <!-- ========================================== -->
         <div id="page-home" class="page active">
-            <!-- Spieler-Kopfbereich -->
+            <!-- Spieler Status Karte -->
             <div class="card"
                 style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #1e3a8a, #1e293b); border: none;">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -199,24 +225,25 @@
                     </div>
                 </div>
                 <button onclick="window.location.href='avatar.html'"
-                    style="background: #fbbf24; color: #111; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">Shop
+                    style="background: #fbbf24; color: #111; border: none; padding: 8px 15px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: transform 0.1s;">Shop
                     🎨</button>
             </div>
 
-            <!-- MODUS WÄHLEN -->
+            <!-- SPIELMODUS -->
             <div class="card">
-                <div class="section-title">🎮 1. Spiel-Modus</div>
+                <div class="section-title">🎮 1. Modus wählen</div>
                 <select id="game-mode-select">
                     <option value="spiel">🏆 Spiel-Modus (Coins & Zeitdruck)</option>
                     <option value="lernen">📖 Lern-Modus (15 Min. Schatzkiste)</option>
                 </select>
             </div>
 
-            <!-- THEMENBEREICHE ALS DOPPEL-DROPDOWN MIT LIVE COUNDS -->
+            <!-- QUIZ AUSWAHL MIT LIVE DROPDOWNS -->
             <div class="card" style="border: 2px solid #3b82f6;">
                 <div class="section-title">🎒 2. Wissens-Quiz</div>
+
                 <label
-                    style="font-size:0.8rem; color:#94a3b8; font-weight:bold; display:block; margin-bottom:5px;">HAUPTKATEGORIE
+                    style="font-size:0.8rem; color:#94a3b8; font-weight:bold; display:block; margin-bottom:6px;">HAUPTKATEGORIE
                     WÄHLEN:</label>
                 <select id="main-category" onchange="updateSubCategories()">
                     <option value="schule2">🏫 Grundschule - Klasse 2</option>
@@ -226,10 +253,10 @@
                 </select>
 
                 <label
-                    style="font-size:0.8rem; color:#94a3b8; font-weight:bold; display:block; margin-bottom:5px;">UNTERKATEGORIE
-                    WÄHLEN (inkl. Fragenanzahl):</label>
+                    style="font-size:0.8rem; color:#94a3b8; font-weight:bold; display:block; margin-bottom:6px;">UNTERKATEGORIE
+                    WÄHLEN:</label>
                 <select id="sub-category">
-                    <!-- Wird dynamisch mit Fragenanzahlen befüllt -->
+                    <!-- Wird dynamisch mit echten Zählern befüllt -->
                 </select>
 
                 <button onclick="startQuiz()" class="start-btn" style="margin-top: 10px;">Quiz starten! 🚀</button>
@@ -251,10 +278,10 @@
         <div id="page-leaderboard" class="page">
             <div class="card">
                 <div class="section-title" style="color:#fbbf24; justify-content:center;">🏆 Familien-Rangliste 🏆</div>
-                <p style="text-align: center; font-size: 0.8rem; color: #94a3b8; margin-top: 0;">Wer sammelt die meisten
-                    Punkte?</p>
-                <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
-                    Lade Rangliste...</div>
+                <p style="text-align: center; font-size: 0.8rem; color: #94a3b8; margin-top: 0; margin-bottom: 20px;">
+                    Wer sammelt die meisten Sterne?</p>
+                <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 10px;">Lade Rangliste...
+                </div>
             </div>
         </div>
 
@@ -269,24 +296,25 @@
 
                 <select id="calc-type" onchange="toggleWorkshopInputs()">
                     <option value="ohm">⚡ Ohmsches Gesetz (U = R * I)</option>
-                    <option value="resistor">🔌 Reihenschaltung (R_ges = R1 + R2)</option>
+                    <option value="resistor">🔌 Reihenschaltung von Widerständen</option>
                 </select>
 
                 <!-- Inputs für Ohmsches Gesetz -->
                 <div id="inputs-ohm">
                     <input type="number" id="input-u" placeholder="Spannung U (Volt) - leer lassen falls gesucht">
                     <input type="number" id="input-r" placeholder="Widerstand R (Ohm) - leer lassen falls gesucht">
-                    <input type="number" id="input-i" placeholder="Stromstärke I (Amperé) - leer lassen falls gesucht">
+                    <input type="number" id="input-i" placeholder="Stromstärke I (Ampere) - leer lassen falls gesucht">
                 </div>
 
                 <!-- Inputs für Reihenschaltung -->
                 <div id="inputs-resistor" style="display:none;">
                     <input type="number" id="input-r1" placeholder="Widerstand R1 (Ohm)">
                     <input type="number" id="input-r2" placeholder="Widerstand R2 (Ohm)">
+                    <input type="number" id="input-r3" placeholder="Widerstand R3 (Ohm) - optional">
                 </div>
 
                 <button onclick="calculateWorkshop()" class="start-btn"
-                    style="background:#10b981; margin-top: 10px;">Berechnung durchführen 🧮</button>
+                    style="background:#10b981; margin-top: 5px;">Berechnung durchführen 🧮</button>
                 <div id="workshop-result" class="calc-result" style="display:none;"></div>
             </div>
         </div>
@@ -297,18 +325,18 @@
         <div id="page-parent" class="page">
             <div class="card" style="border: 2px solid #ef4444;">
                 <div class="section-title" style="color:#ef4444;">👨‍👩‍👦 Eltern- & Admin-Dashboard</div>
-                <p style="font-size:0.85rem; color:#94a3b8; margin-top:0; margin-bottom: 20px;">Hier siehst du die
-                    Lernfortschritte und kannst Coins direkt anpassen:</p>
+                <p style="font-size:0.85rem; color:#94a3b8; margin-top:0; margin-bottom: 15px;">Hier verwaltest du die
+                    Profile aller Spieler:</p>
 
                 <div id="parent-stats-container">
-                    Lade Auswertung...
+                    Lade Profile...
                 </div>
             </div>
         </div>
 
     </div>
 
-    <!-- FESTE NAVIGATION UNTEN -->
+    <!-- FESTE NAVIGATION UNTEN (Die 4 Menüs) -->
     <div class="bottom-nav">
         <button class="nav-item active" onclick="switchPage('home', this)"><span
                 class="nav-icon">🏠</span>Lernen</button>
@@ -322,6 +350,7 @@
 
     <script src="questions.js"></script>
     <script>
+        // Firebase Konfiguration
         const firebaseConfig = {
             apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
             authDomain: "family-quizzz-80c40.firebaseapp.com",
@@ -338,7 +367,7 @@
         let playerName = sessionStorage.getItem("current_quiz_player");
         let currentPlayer = null;
 
-        // Dynamische Subkategorien-Befüllung mit Fragenanzahlen aus der questions.js
+        // Füllt die Unterkategorien live mit Fragenanzahlen aus questions.js
         function updateSubCategories() {
             const mainCat = document.getElementById("main-category").value;
             const subSelect = document.getElementById("sub-category");
@@ -346,7 +375,7 @@
 
             const subs = getCategoriesFor(mainCat);
             subs.forEach(sub => {
-                // Berechnet live, wie viele Fragen zu dieser Subkategorie existieren
+                // Filtert live die questions.js nach dieser Kategorie
                 const count = allQuestions.filter(q => q.category === sub.value).length;
                 const opt = document.createElement("option");
                 opt.value = sub.value;
@@ -355,6 +384,7 @@
             });
         }
 
+        // Navigations-Umschaltung
         function switchPage(pageId, btn) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -363,6 +393,7 @@
             btn.classList.add('active');
         }
 
+        // Initialisierung des Hauptmenüs
         function initMenu() {
             if (!playerName) { window.location.href = "index.html"; return; }
             updateSubCategories();
@@ -384,6 +415,7 @@
             loadParentDashboard();
         }
 
+        // Lädt die Rangliste aus der Firebase Datenbank
         function loadLeaderboard() {
             db.ref("players").on("value", (snapshot) => {
                 const container = document.getElementById("leaderboard-list");
@@ -396,16 +428,31 @@
                 });
 
                 playersArray.sort((a, b) => (b.rankPoints || 0) - (a.rankPoints || 0));
+
+                const medals = ["🥇", "🥈", "🥉"];
                 playersArray.forEach((player, index) => {
+                    let rankBadge = medals[index] || `#${index + 1}`;
                     let row = document.createElement("div");
-                    row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:12px; background:#334155; border-radius:10px; font-weight:bold;";
-                    row.innerHTML = `<span>${index + 1}. ${player.name}</span><span style="color:#fbbf24;">⭐ ${player.rankPoints || 0} Pkt.</span>`;
+                    row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:12px; background:#334155; border-radius:12px; font-weight:bold; border: 1px solid #475569;";
+
+                    let base = player.avatar ? player.avatar.base || "🧑" : "🧑";
+                    let hat = player.avatar ? player.avatar.hat || "" : "";
+                    let glasses = player.avatar ? player.avatar.glasses || "" : "";
+
+                    row.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size: 1.1rem;">${rankBadge}</span>
+                        <span style="font-size: 1.6rem;">${base}${hat}${glasses}</span>
+                        <span>${player.name}</span>
+                    </div>
+                    <span style="color:#fbbf24;">⭐ ${player.rankPoints || 0} Pkt.</span>
+                `;
                     container.appendChild(row);
                 });
             });
         }
 
-        // Eltern Dashboard: Statistiken anzeigen und direkte Manipulations-Optionen für dich
+        // Eltern Dashboard: Coins bearbeiten & Lernfortschritt sehen
         function loadParentDashboard() {
             db.ref("players").on("value", (snapshot) => {
                 const container = document.getElementById("parent-stats-container");
@@ -419,10 +466,13 @@
                         row.className = "admin-player-row";
 
                         row.innerHTML = `
-                        <div style="font-weight:bold; color:#60a5fa; font-size:1.05rem;">👤 ${p.name} (Alter: ${p.age || '?'})</div>
-                        <div style="font-size:0.9rem; color:#cbd5e1;">
-                            🪙 Coins aktuell: <span style="color:#fbbf24; font-weight:bold;">${p.coins || 0}</span><br>
-                            ⏱️ Lernzeit aktiv: <span>${mins} Minuten</span>
+                        <div style="font-weight:bold; color:#60a5fa; font-size:1.1rem; display:flex; justify-content:space-between;">
+                            <span>👤 ${p.name}</span>
+                            <span style="font-size:0.85rem; color:#94a3b8;">Alter: ${p.age || '?'}</span>
+                        </div>
+                        <div style="font-size:0.9rem; color:#cbd5e1; line-height:1.5;">
+                            Coins aktuell: <span style="color:#fbbf24; font-weight:bold;">${p.coins || 0} 🪙</span><br>
+                            Lernzeit gesamt: <span style="color:#34d399; font-weight:bold;">${mins} Min.</span>
                         </div>
                         <div class="admin-actions">
                             <input type="number" id="adjust-amount-${child.key}" placeholder="Wert..." style="width:100px; margin-bottom:0; padding:6px; font-size:0.9rem;" />
@@ -436,27 +486,28 @@
             });
         }
 
-        // Ändert Coins eines Spielers direkt in Firebase
+        // Transaktions-Logik zum Ändern der Coins
         function changePlayerCoins(playerKey, sign) {
             const input = document.getElementById(`adjust-amount-${playerKey}`);
             const amount = parseInt(input.value);
-            if (isNaN(amount) || amount <= 0) { alert("Bitte gib einen gültigen, positiven Betrag ein!"); return; }
+            if (isNaN(amount) || amount <= 0) { alert("Bitte gib einen gültigen, positiven Wert ein!"); return; }
 
             const change = amount * sign;
             db.ref(`players/${playerKey}/coins`).transaction((currentCoins) => {
                 return (currentCoins || 0) + change;
             }, () => {
-                input.value = ""; // Eingabefeld leeren
+                input.value = ""; // Input leeren
             });
         }
 
-        // WERKSTATT-RECHNER LOGIK
+        // Werkstatt Umschaltung
         function toggleWorkshopInputs() {
             const type = document.getElementById("calc-type").value;
             document.getElementById("inputs-ohm").style.display = type === 'ohm' ? 'block' : 'none';
             document.getElementById("inputs-resistor").style.display = type === 'resistor' ? 'block' : 'none';
         }
 
+        // Werkstatt Berechnungen
         function calculateWorkshop() {
             const type = document.getElementById("calc-type").value;
             const resBox = document.getElementById("workshop-result");
@@ -468,21 +519,29 @@
                 let i = parseFloat(document.getElementById("input-i").value);
 
                 if (!isNaN(r) && !isNaN(i) && isNaN(u)) {
-                    resBox.innerText = `Gesucht: Spannung U\nFormel: U = R * I\nErgebnis: U = ${r} Ohm * ${i} A = ${(r * i).toFixed(2)} Volt ⚡`;
+                    resBox.innerHTML = `Gesucht: Spannung $U$<br>Formel: $U = R \\cdot I$<br>Ergebnis: $U$ = ${r} Ohm $\\cdot$ ${i} A = <strong>${(r * i).toFixed(2)} Volt ⚡</strong>`;
                 } else if (!isNaN(u) && !isNaN(i) && isNaN(r)) {
-                    resBox.innerText = `Gesucht: Widerstand R\nFormel: R = U / I\nErgebnis: R = ${u} V / ${i} A = ${(u / i).toFixed(2)} Ohm 🔌`;
+                    resBox.innerHTML = `Gesucht: Widerstand $R$<br>Formel: $R = U / I$<br>Ergebnis: $R$ = ${u} V / ${i} A = <strong>${(u / i).toFixed(2)} Ohm 🔌</strong>`;
                 } else if (!isNaN(u) && !isNaN(r) && isNaN(i)) {
-                    resBox.innerText = `Gesucht: Stromstärke I\nFormel: I = U / R\nErgebnis: I = ${u} V / ${r} Ohm = ${(u / r).toFixed(2)} Ampere ⚙️`;
+                    resBox.innerHTML = `Gesucht: Stromstärke $I$<br>Formel: $I = U / R$<br>Ergebnis: $I$ = ${u} V / ${r} Ohm = <strong>${(u / r).toFixed(2)} Ampere ⚙️</strong>`;
                 } else {
-                    resBox.innerText = "❌ Bitte lasse genau den einen Wert leer, den du ausrechnen möchtest!";
+                    resBox.innerText = "❌ Bitte lasse exakt ein Eingabefeld leer, um den gesuchten Wert zu berechnen!";
                 }
             } else if (type === 'resistor') {
                 let r1 = parseFloat(document.getElementById("input-r1").value);
                 let r2 = parseFloat(document.getElementById("input-r2").value);
+                let r3 = parseFloat(document.getElementById("input-r3").value);
+
                 if (isNaN(r1) || isNaN(r2)) {
-                    resBox.innerText = "❌ Bitte trage R1 und R2 ein!";
+                    resBox.innerText = "❌ Bitte trage mindestens R1 und R2 ein!";
                 } else {
-                    resBox.innerText = `Gesucht: Gesamtwiderstand R_ges\nFormel: R_ges = R1 + R2\nErgebnis: R_ges = ${r1} Ohm + ${r2} Ohm = ${(r1 + r2).toFixed(2)} Ohm 🔌`;
+                    let sum = r1 + r2;
+                    let text = `R_ges = ${r1} \\Omega + ${r2} \\Omega`;
+                    if (!isNaN(r3)) {
+                        sum += r3;
+                        text += ` + ${r3} \\Omega`;
+                    }
+                    resBox.innerHTML = `Gesucht: Gesamtwiderstand $R_{ges}$<br>Formel: $R_{ges} = R_1 + R_2 + R_3$<br>Rechnung: $R_{ges} = ${text}$<br>Ergebnis: R_ges = <strong>${sum.toFixed(2)} Ohm 🔌</strong>`;
                 }
             }
         }
@@ -499,13 +558,3 @@
 </body>
 
 </html>
-```
-eof
-
----
-
-### Was du jetzt tun kannst:
-* Erstelle (oder öffne) die Datei **`menu.html`** in deinem Code-Editor.
-* Lösche den gesamten alten Code darin und füge den oben stehenden Code komplett ein.
-* Sobald du speicherst, ist deine App wieder vollständig einsatzbereit – inklusive des Eltern-Dashboards mit
-Coin-Steuerung und Fragen-Zählern!

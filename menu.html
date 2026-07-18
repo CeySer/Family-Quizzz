@@ -4,39 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Quizzz - Zentrale</title>
+    <title>Zentrale - Family Quizzz & Werkstatt</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
         body {
             background-color: #0f172a;
             color: #f8fafc;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             margin: 0;
-            padding-bottom: 80px;
+            padding-bottom: 85px;
         }
 
         .container {
             max-width: 500px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 15px;
         }
 
-        .card {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 15px;
-        }
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-        }
-
+        /* Premium Feste Navigation unten */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -45,33 +32,150 @@
             background: #1e293b;
             display: flex;
             justify-content: space-around;
-            padding: 15px;
+            padding: 12px 0;
             border-top: 2px solid #334155;
+            z-index: 1000;
         }
 
+        .nav-item {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: #3b82f6;
+        }
+
+        .nav-icon {
+            font-size: 1.5rem;
+        }
+
+        /* Seiten-Logik */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Modernisierte UI-Karten */
+        .card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 15px;
+            border: 1px solid #334155;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            color: #3b82f6;
+            font-weight: bold;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Dropdowns & Selektoren */
         select,
-        button {
+        input {
             width: 100%;
             padding: 12px;
-            margin: 5px 0;
-            border-radius: 8px;
-            border: none;
+            background: #334155;
+            border: 2px solid #475569;
+            color: white;
+            border-radius: 10px;
+            font-size: 1rem;
             font-weight: bold;
+            margin-bottom: 12px;
+            outline: none;
+            box-sizing: border-box;
         }
 
-        .btn-start {
+        select:focus,
+        input:focus {
+            border-color: #3b82f6;
+        }
+
+        .start-btn {
             background: #10b981;
             color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .start-btn:hover {
+            background: #059669;
+        }
+
+        /* Werkstatt Styles */
+        .calc-result {
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+            margin-top: 10px;
+            font-weight: bold;
+            color: #34d399;
+            text-align: left;
+        }
+
+        /* Eltern Dashboard Tabellen & Inputs */
+        .admin-player-row {
+            background: #334155;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-action {
+            background: #e2e8f0;
+            color: #0f172a;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
             cursor: pointer;
         }
 
-        .admin-item {
-            background: #334155;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
+        .btn-action:hover {
+            background: #cbd5e1;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
         }
     </style>
 </head>
@@ -79,44 +183,170 @@
 <body>
 
     <div class="container">
+
+        <!-- ========================================== -->
+        <!-- REITER 1: HOME & LERNEN                    -->
+        <!-- ========================================== -->
         <div id="page-home" class="page active">
+            <!-- Spieler-Kopfbereich -->
+            <div class="card"
+                style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #1e3a8a, #1e293b); border: none;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div id="mini-avatar" style="font-size: 2.3rem;">🧑</div>
+                    <div>
+                        <span id="welcome-text" style="font-weight: bold; font-size: 1.25rem;">Lade...</span><br>
+                        <span style="color: #fbbf24; font-weight: bold;">🪙 <span id="menu-coins">0</span> Coins</span>
+                    </div>
+                </div>
+                <button onclick="window.location.href='avatar.html'"
+                    style="background: #fbbf24; color: #111; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">Shop
+                    🎨</button>
+            </div>
+
+            <!-- MODUS WÄHLEN -->
             <div class="card">
-                <h3>Hallo! Was lernen wir heute?</h3>
-                <select id="main-category" onchange="updateSubCategories()">
-                    <option value="schule2">Grundschule (Klasse 2)</option>
-                    <option value="schule5">Weiterführende (Klasse 5)</option>
-                    <option value="kfz">KFZ-Ausbildung</option>
-                    <option value="allgemein">Sprachen & Religion</option>
+                <div class="section-title">🎮 1. Spiel-Modus</div>
+                <select id="game-mode-select">
+                    <option value="spiel">🏆 Spiel-Modus (Coins & Zeitdruck)</option>
+                    <option value="lernen">📖 Lern-Modus (15 Min. Schatzkiste)</option>
                 </select>
-                <select id="sub-category"></select>
-                <button class="btn-start" onclick="startQuiz()">Quiz starten</button>
+            </div>
+
+            <!-- THEMENBEREICHE ALS DOPPEL-DROPDOWN MIT LIVE COUNDS -->
+            <div class="card" style="border: 2px solid #3b82f6;">
+                <div class="section-title">🎒 2. Wissens-Quiz</div>
+                <label
+                    style="font-size:0.8rem; color:#94a3b8; font-weight:bold; display:block; margin-bottom:5px;">HAUPTKATEGORIE
+                    WÄHLEN:</label>
+                <select id="main-category" onchange="updateSubCategories()">
+                    <option value="schule2">🏫 Grundschule - Klasse 2</option>
+                    <option value="schule5">🇬🇧 Weiterführende Schule - Klasse 5</option>
+                    <option value="kfz">🔧 KFZ-Mechatroniker (Ausbildung)</option>
+                    <option value="allgemein">🕌 Kultur & Sprachen</option>
+                </select>
+
+                <label
+                    style="font-size:0.8rem; color:#94a3b8; font-weight:bold; display:block; margin-bottom:5px;">UNTERKATEGORIE
+                    WÄHLEN (inkl. Fragenanzahl):</label>
+                <select id="sub-category">
+                    <!-- Wird dynamisch mit Fragenanzahlen befüllt -->
+                </select>
+
+                <button onclick="startQuiz()" class="start-btn" style="margin-top: 10px;">Quiz starten! 🚀</button>
+            </div>
+
+            <!-- VOKABELTRAINER BEREICH -->
+            <div class="card" style="border: 2px solid #6366f1; background: #1e1b4b;">
+                <div class="section-title" style="color: #818cf8;">📖 3. Vokabel-Trainer</div>
+                <p style="font-size: 0.85rem; color: #cbd5e1; margin-top: 0; margin-bottom: 12px;">Lerne Vokabeln direkt
+                    aus den echten Schulbüchern!</p>
+                <button onclick="window.location.href='vokabeln.html'" class="start-btn"
+                    style="background:#4f46e5;">Vokabeltrainer öffnen ➔</button>
             </div>
         </div>
 
-        <div id="page-parent" class="page">
+        <!-- ========================================== -->
+        <!-- REITER 2: BESTENLISTE                      -->
+        <!-- ========================================== -->
+        <div id="page-leaderboard" class="page">
             <div class="card">
-                <h3>Eltern-Dashboard (Admin)</h3>
-                <div id="admin-list">Lade Spieler...</div>
+                <div class="section-title" style="color:#fbbf24; justify-content:center;">🏆 Familien-Rangliste 🏆</div>
+                <p style="text-align: center; font-size: 0.8rem; color: #94a3b8; margin-top: 0;">Wer sammelt die meisten
+                    Punkte?</p>
+                <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                    Lade Rangliste...</div>
             </div>
         </div>
+
+        <!-- ========================================== -->
+        <!-- REITER 3: CEYHUNS WERKSTATT                -->
+        <!-- ========================================== -->
+        <div id="page-workshop" class="page">
+            <div class="card" style="border: 2px solid #10b981;">
+                <div class="section-title" style="color:#10b981;">🔧 Ceyhuns Werkstatt-Rechner</div>
+                <p style="font-size:0.85rem; color:#94a3b8; margin-top:0; margin-bottom: 15px;">Prüfe deine Berechnungen
+                    für die Berufsschule:</p>
+
+                <select id="calc-type" onchange="toggleWorkshopInputs()">
+                    <option value="ohm">⚡ Ohmsches Gesetz (U = R * I)</option>
+                    <option value="resistor">🔌 Reihenschaltung (R_ges = R1 + R2)</option>
+                </select>
+
+                <!-- Inputs für Ohmsches Gesetz -->
+                <div id="inputs-ohm">
+                    <input type="number" id="input-u" placeholder="Spannung U (Volt) - leer lassen falls gesucht">
+                    <input type="number" id="input-r" placeholder="Widerstand R (Ohm) - leer lassen falls gesucht">
+                    <input type="number" id="input-i" placeholder="Stromstärke I (Amperé) - leer lassen falls gesucht">
+                </div>
+
+                <!-- Inputs für Reihenschaltung -->
+                <div id="inputs-resistor" style="display:none;">
+                    <input type="number" id="input-r1" placeholder="Widerstand R1 (Ohm)">
+                    <input type="number" id="input-r2" placeholder="Widerstand R2 (Ohm)">
+                </div>
+
+                <button onclick="calculateWorkshop()" class="start-btn"
+                    style="background:#10b981; margin-top: 10px;">Berechnung durchführen 🧮</button>
+                <div id="workshop-result" class="calc-result" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- REITER 4: ELTERN DASHBOARD (ADMIN)         -->
+        <!-- ========================================== -->
+        <div id="page-parent" class="page">
+            <div class="card" style="border: 2px solid #ef4444;">
+                <div class="section-title" style="color:#ef4444;">👨‍👩‍👦 Eltern- & Admin-Dashboard</div>
+                <p style="font-size:0.85rem; color:#94a3b8; margin-top:0; margin-bottom: 20px;">Hier siehst du die
+                    Lernfortschritte und kannst Coins direkt anpassen:</p>
+
+                <div id="parent-stats-container">
+                    Lade Auswertung...
+                </div>
+            </div>
+        </div>
+
     </div>
 
+    <!-- FESTE NAVIGATION UNTEN -->
     <div class="bottom-nav">
-        <button onclick="switchPage('home')">🏠 Home</button>
-        <button onclick="switchPage('parent')">👨‍👩‍👦 Eltern</button>
+        <button class="nav-item active" onclick="switchPage('home', this)"><span
+                class="nav-icon">🏠</span>Lernen</button>
+        <button class="nav-item" onclick="switchPage('leaderboard', this)"><span
+                class="nav-icon">🏆</span>Rangliste</button>
+        <button class="nav-item" onclick="switchPage('workshop', this)"><span
+                class="nav-icon">🔧</span>Werkstatt</button>
+        <button class="nav-item" onclick="switchPage('parent', this)"><span
+                class="nav-icon">👨‍👩‍👦</span>Eltern</button>
     </div>
 
     <script src="questions.js"></script>
     <script>
-        const firebaseConfig = { /* Bitte hier deine Config einfügen */ };
+        const firebaseConfig = {
+            apiKey: "AIzaSyAy5YkfW99nY3t1CxxrFI5dlqe4w2NZfj4",
+            authDomain: "family-quizzz-80c40.firebaseapp.com",
+            databaseURL: "https://family-quizzz-80c40-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "family-quizzz-80c40",
+            storageBucket: "family-quizzz-80c40.firebasestorage.app",
+            messagingSenderId: "30751445599",
+            appId: "1:30751445599:web:28636f46555f5df49881ea"
+        };
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        let playerName = sessionStorage.getItem("current_quiz_player");
+        let currentPlayer = null;
+
+        // Dynamische Subkategorien-Befüllung mit Fragenanzahlen aus der questions.js
         function updateSubCategories() {
             const mainCat = document.getElementById("main-category").value;
             const subSelect = document.getElementById("sub-category");
             subSelect.innerHTML = "";
-            getCategoriesFor(mainCat).forEach(sub => {
+
+            const subs = getCategoriesFor(mainCat);
+            subs.forEach(sub => {
+                // Berechnet live, wie viele Fragen zu dieser Subkategorie existieren
                 const count = allQuestions.filter(q => q.category === sub.value).length;
                 const opt = document.createElement("option");
                 opt.value = sub.value;
@@ -125,31 +355,157 @@
             });
         }
 
-        function switchPage(p) {
-            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-            document.getElementById('page-' + p).classList.add('active');
+        function switchPage(pageId, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            btn.classList.add('active');
         }
 
-        function adjustCoins(playerKey, change) {
-            db.ref('players/' + playerKey).once('value', (s) => {
-                let p = s.val();
-                p.coins = (p.coins || 0) + change;
-                db.ref('players/' + playerKey).set(p);
+        function initMenu() {
+            if (!playerName) { window.location.href = "index.html"; return; }
+            updateSubCategories();
+
+            db.ref("players/" + playerName.toLowerCase()).on("value", (snapshot) => {
+                currentPlayer = snapshot.val();
+                if (!currentPlayer) return;
+
+                document.getElementById("welcome-text").innerText = currentPlayer.name;
+                document.getElementById("menu-coins").innerText = currentPlayer.coins || 0;
+
+                let base = currentPlayer.avatar ? currentPlayer.avatar.base || "🧑" : "🧑";
+                let hat = currentPlayer.avatar ? currentPlayer.avatar.hat || "" : "";
+                let glasses = currentPlayer.avatar ? currentPlayer.avatar.glasses || "" : "";
+                document.getElementById("mini-avatar").innerText = `${base}${hat}${glasses}`;
+            });
+
+            loadLeaderboard();
+            loadParentDashboard();
+        }
+
+        function loadLeaderboard() {
+            db.ref("players").on("value", (snapshot) => {
+                const container = document.getElementById("leaderboard-list");
+                container.innerHTML = "";
+                let playersArray = [];
+
+                snapshot.forEach((child) => {
+                    let p = child.val();
+                    if (p.name && p.name.toLowerCase() !== "admin") playersArray.push(p);
+                });
+
+                playersArray.sort((a, b) => (b.rankPoints || 0) - (a.rankPoints || 0));
+                playersArray.forEach((player, index) => {
+                    let row = document.createElement("div");
+                    row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:12px; background:#334155; border-radius:10px; font-weight:bold;";
+                    row.innerHTML = `<span>${index + 1}. ${player.name}</span><span style="color:#fbbf24;">⭐ ${player.rankPoints || 0} Pkt.</span>`;
+                    container.appendChild(row);
+                });
             });
         }
 
-        db.ref('players').on('value', (snap) => {
-            const list = document.getElementById('admin-list');
-            list.innerHTML = "";
-            snap.forEach(child => {
-                const p = child.val();
-                list.innerHTML += `<div class="admin-item">${p.name}: ${p.coins} Coins 
-                <button onclick="adjustCoins('${child.key}', 10)">+10</button></div>`;
-            });
-        });
+        // Eltern Dashboard: Statistiken anzeigen und direkte Manipulations-Optionen für dich
+        function loadParentDashboard() {
+            db.ref("players").on("value", (snapshot) => {
+                const container = document.getElementById("parent-stats-container");
+                container.innerHTML = "";
 
-        window.onload = updateSubCategories;
+                snapshot.forEach((child) => {
+                    let p = child.val();
+                    if (p.name && p.name.toLowerCase() !== "admin") {
+                        let mins = Math.floor((p.learningProgress || 0) / 60);
+                        let row = document.createElement("div");
+                        row.className = "admin-player-row";
+
+                        row.innerHTML = `
+                        <div style="font-weight:bold; color:#60a5fa; font-size:1.05rem;">👤 ${p.name} (Alter: ${p.age || '?'})</div>
+                        <div style="font-size:0.9rem; color:#cbd5e1;">
+                            🪙 Coins aktuell: <span style="color:#fbbf24; font-weight:bold;">${p.coins || 0}</span><br>
+                            ⏱️ Lernzeit aktiv: <span>${mins} Minuten</span>
+                        </div>
+                        <div class="admin-actions">
+                            <input type="number" id="adjust-amount-${child.key}" placeholder="Wert..." style="width:100px; margin-bottom:0; padding:6px; font-size:0.9rem;" />
+                            <button class="btn-action" onclick="changePlayerCoins('${child.key}', 1)">+ Coins</button>
+                            <button class="btn-action btn-danger" onclick="changePlayerCoins('${child.key}', -1)">- Coins</button>
+                        </div>
+                    `;
+                        container.appendChild(row);
+                    }
+                });
+            });
+        }
+
+        // Ändert Coins eines Spielers direkt in Firebase
+        function changePlayerCoins(playerKey, sign) {
+            const input = document.getElementById(`adjust-amount-${playerKey}`);
+            const amount = parseInt(input.value);
+            if (isNaN(amount) || amount <= 0) { alert("Bitte gib einen gültigen, positiven Betrag ein!"); return; }
+
+            const change = amount * sign;
+            db.ref(`players/${playerKey}/coins`).transaction((currentCoins) => {
+                return (currentCoins || 0) + change;
+            }, () => {
+                input.value = ""; // Eingabefeld leeren
+            });
+        }
+
+        // WERKSTATT-RECHNER LOGIK
+        function toggleWorkshopInputs() {
+            const type = document.getElementById("calc-type").value;
+            document.getElementById("inputs-ohm").style.display = type === 'ohm' ? 'block' : 'none';
+            document.getElementById("inputs-resistor").style.display = type === 'resistor' ? 'block' : 'none';
+        }
+
+        function calculateWorkshop() {
+            const type = document.getElementById("calc-type").value;
+            const resBox = document.getElementById("workshop-result");
+            resBox.style.display = "block";
+
+            if (type === 'ohm') {
+                let u = parseFloat(document.getElementById("input-u").value);
+                let r = parseFloat(document.getElementById("input-r").value);
+                let i = parseFloat(document.getElementById("input-i").value);
+
+                if (!isNaN(r) && !isNaN(i) && isNaN(u)) {
+                    resBox.innerText = `Gesucht: Spannung U\nFormel: U = R * I\nErgebnis: U = ${r} Ohm * ${i} A = ${(r * i).toFixed(2)} Volt ⚡`;
+                } else if (!isNaN(u) && !isNaN(i) && isNaN(r)) {
+                    resBox.innerText = `Gesucht: Widerstand R\nFormel: R = U / I\nErgebnis: R = ${u} V / ${i} A = ${(u / i).toFixed(2)} Ohm 🔌`;
+                } else if (!isNaN(u) && !isNaN(r) && isNaN(i)) {
+                    resBox.innerText = `Gesucht: Stromstärke I\nFormel: I = U / R\nErgebnis: I = ${u} V / ${r} Ohm = ${(u / r).toFixed(2)} Ampere ⚙️`;
+                } else {
+                    resBox.innerText = "❌ Bitte lasse genau den einen Wert leer, den du ausrechnen möchtest!";
+                }
+            } else if (type === 'resistor') {
+                let r1 = parseFloat(document.getElementById("input-r1").value);
+                let r2 = parseFloat(document.getElementById("input-r2").value);
+                if (isNaN(r1) || isNaN(r2)) {
+                    resBox.innerText = "❌ Bitte trage R1 und R2 ein!";
+                } else {
+                    resBox.innerText = `Gesucht: Gesamtwiderstand R_ges\nFormel: R_ges = R1 + R2\nErgebnis: R_ges = ${r1} Ohm + ${r2} Ohm = ${(r1 + r2).toFixed(2)} Ohm 🔌`;
+                }
+            }
+        }
+
+        function startQuiz() {
+            const subCat = document.getElementById("sub-category").value;
+            const mode = document.getElementById("game-mode-select").value;
+            sessionStorage.setItem("quiz_settings", JSON.stringify({ categories: [subCat], mode: mode }));
+            window.location.href = "quiz.html";
+        }
+
+        window.onload = initMenu;
     </script>
 </body>
 
 </html>
+```
+eof
+
+---
+
+### Was du jetzt tun kannst:
+* Erstelle (oder öffne) die Datei **`menu.html`** in deinem Code-Editor.
+* Lösche den gesamten alten Code darin und füge den oben stehenden Code komplett ein.
+* Sobald du speicherst, ist deine App wieder vollständig einsatzbereit – inklusive des Eltern-Dashboards mit
+Coin-Steuerung und Fragen-Zählern!

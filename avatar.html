@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avatar Studio - Vektor Edition</title>
+    <title>Avatar Studio - Emoji Edition</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -35,46 +35,50 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         }
 
-        /* Pixelgenaues Layering für echte Vektor-Grafiken (SVGs) */
-        .avatar-viewport {
-            width: 150px;
-            height: 150px;
+        /* Schicht-Anzeige für die stapelbaren Emojis */
+        .emoji-avatar-viewport {
+            width: 120px;
+            height: 120px;
             margin: 0 auto;
             position: relative;
             background: #1e3a8a;
-            border-radius: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.5);
-            overflow: hidden;
+            overflow: visible;
         }
 
-        .avatar-layer {
+        .emoji-layer {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            pointer-events: none;
-            /* Klicks gehen durch das Bild durch */
+            user-select: none;
+            line-height: 1;
         }
 
-        .layer-base {
+        .emoji-layer.l-base {
+            font-size: 4.8rem;
             z-index: 1;
+            top: 18px;
         }
 
-        .layer-glasses {
+        .emoji-layer.l-glasses {
+            font-size: 2.8rem;
             z-index: 2;
+            top: 24px;
         }
 
-        .layer-hat {
+        .emoji-layer.l-hat {
+            font-size: 3.8rem;
             z-index: 3;
+            top: -18px;
         }
 
         .coin-status {
             font-size: 1.3rem;
             color: #fbbf24;
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         /* Shop Layout */
@@ -92,7 +96,7 @@
 
         .shop-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 10px;
             margin-bottom: 15px;
         }
@@ -116,11 +120,9 @@
             border-color: #3b82f6;
         }
 
-        .item-preview-img {
-            width: 60px;
-            height: 60px;
-            object-fit: contain;
-            margin-bottom: 8px;
+        .item-emoji {
+            font-size: 2.5rem;
+            margin-bottom: 6px;
         }
 
         .item-label {
@@ -129,7 +131,7 @@
             color: #f1f5f9;
         }
 
-        /* Button Tags */
+        /* Statustags */
         .status-tag {
             width: 100%;
             border-radius: 8px;
@@ -158,12 +160,6 @@
             box-shadow: 0 0 10px rgba(22, 163, 74, 0.4);
         }
 
-        .status-epic {
-            background: #581c87;
-            color: #d8b4fe;
-            border: 1px solid #a855f7;
-        }
-
         .back-btn {
             background: #ef4444;
             color: white;
@@ -183,14 +179,14 @@
 <body>
 
     <div class="container">
-        <h2 style="color: #60a5fa; margin-top: 10px; margin-bottom: 15px;">Vektor Avatar Studio 🎨</h2>
+        <h2 style="color: #60a5fa; margin-top: 10px; margin-bottom: 15px;">Avatar Studio 🎨</h2>
 
-        <!-- AVATAR LIVE VORSCHAU (ECHTE BILDER ÜBEREINANDER) -->
+        <!-- AVATAR LIVE VORSCHAU -->
         <div class="avatar-display-card">
-            <div class="avatar-viewport">
-                <img id="p-base" class="avatar-layer layer-base" src="bilder/avatar/basis.svg" alt="Basis">
-                <img id="p-glasses" class="avatar-layer layer-glasses" src="" style="display:none;">
-                <img id="p-hat" class="avatar-layer layer-hat" src="" style="display:none;">
+            <div class="emoji-avatar-viewport">
+                <div id="p-base" class="emoji-layer l-base">🧑</div>
+                <div id="p-glasses" class="emoji-layer l-glasses"></div>
+                <div id="p-hat" class="emoji-layer l-hat"></div>
             </div>
             <div class="coin-status">🪙 Deine Coins: <span id="shop-coins">0</span></div>
         </div>
@@ -222,25 +218,22 @@
         let playerName = sessionStorage.getItem("current_quiz_player");
         let currentPlayer = null;
 
-        // SHOP ITEMS MIT PFADEN ZU DEINEN SVG-VEKTOR-DATEIEN
+        // EMOJI ITEM DATENBANK
         const shopHats = [
-            { id: "none_hat", label: "Kein Hut", price: 0, file: "", rarity: "common" },
-            { id: "cap", label: "Basecap", price: 25, file: "bilder/avatar/huete/cap.svg", rarity: "common" },
-            { id: "cowboy", label: "Cowboyhut", price: 60, file: "bilder/avatar/huete/cowboy.svg", rarity: "rare" },
-            { id: "helmet", label: "KFZ-Helm", price: 80, file: "bilder/avatar/huete/helmet.svg", rarity: "rare" },
-            { id: "wizard", label: "Magierhut", price: 120, file: "bilder/avatar/huete/wizard.svg", rarity: "rare" },
-            { id: "crown", label: "Goldene Krone", price: 200, file: "bilder/avatar/huete/crown.svg", rarity: "rare" },
-            { id: "halo", label: "Heiligenschein", price: "epic", file: "bilder/avatar/huete/halo.svg", rarity: "epic" },
-            { id: "ninja", label: "Ninja-Band", price: "epic", file: "bilder/avatar/huete/ninja.svg", rarity: "epic" }
+            { id: "none_hat", label: "Kein Hut", price: 0, emoji: "" },
+            { id: "cap", label: "Basecap", price: 25, emoji: "🧢" },
+            { id: "cowboy", label: "Cowboyhut", price: 60, emoji: "🤠" },
+            { id: "crown", label: "Goldene Krone", price: 200, emoji: "👑" },
+            { id: "magician", label: "Zylinder", price: 120, emoji: "🎩" },
+            { id: "chef", label: "Kochmütze", price: 75, emoji: "👨‍🍳" }
         ];
 
         const shopGlasses = [
-            { id: "none_glasses", label: "Keine Brille", price: 0, file: "", rarity: "common" },
-            { id: "nerd", label: "Nerdbrille", price: 20, file: "bilder/avatar/brillen/nerd.svg", rarity: "common" },
-            { id: "sun", label: "Sonnenbrille", price: 45, file: "bilder/avatar/brillen/sun.svg", rarity: "common" },
-            { id: "heart", label: "Herzbrille", price: 90, file: "bilder/avatar/brillen/heart.svg", rarity: "rare" },
-            { id: "laser", label: "Laser-Visier", price: "epic", file: "bilder/avatar/brillen/laser.svg", rarity: "epic" },
-            { id: "pirate", label: "Augenklappe", price: "epic", file: "bilder/avatar/brillen/pirate.svg", rarity: "epic" }
+            { id: "none_glasses", label: "Keine Brille", price: 0, emoji: "" },
+            { id: "nerd", label: "Nerdbrille", price: 20, emoji: "🤓" },
+            { id: "sun", label: "Sonnenbrille", price: 45, emoji: "😎" },
+            { id: "heart", label: "Herzbrille", price: 90, emoji: "❤️" },
+            { id: "monocle", label: "Monokel", price: 110, emoji: "🧐" }
         ];
 
         db.ref("players/" + (playerName ? playerName.toLowerCase() : "")).on("value", (snapshot) => {
@@ -256,16 +249,12 @@
         });
 
         function updatePreview() {
-            let hatFile = currentPlayer.avatar ? currentPlayer.avatar.hat || "" : "";
-            let glassesFile = currentPlayer.avatar ? currentPlayer.avatar.glasses || "" : "";
+            let hatEmoji = currentPlayer.avatar ? currentPlayer.avatar.hat || "" : "";
+            let glassesEmoji = currentPlayer.avatar ? currentPlayer.avatar.glasses || "" : "";
 
-            let hatImg = document.getElementById("p-hat");
-            if (hatFile !== "") { hatImg.src = hatFile; hatImg.style.display = "block"; }
-            else { hatImg.style.display = "none"; }
-
-            let glassesImg = document.getElementById("p-glasses");
-            if (glassesFile !== "") { glassesImg.src = glassesFile; glassesImg.style.display = "block"; }
-            else { glassesImg.style.display = "none"; }
+            document.getElementById("p-base").innerText = currentPlayer.avatar ? currentPlayer.avatar.base || "🧑" : "🧑";
+            document.getElementById("p-hat").innerText = hatEmoji;
+            document.getElementById("p-glasses").innerText = glassesEmoji;
         }
 
         function renderShopUI() {
@@ -282,7 +271,7 @@
                 card.className = "item-card";
 
                 let currentEquipped = currentPlayer.avatar ? currentPlayer.avatar[itemType] || "" : "";
-                let isCurrentlyEquipped = (currentEquipped === item.file && item.id !== "none_hat" && item.id !== "none_glasses") ||
+                let isCurrentlyEquipped = (currentEquipped === item.emoji && item.id !== "none_hat" && item.id !== "none_glasses") ||
                     (item.id === "none_hat" && currentEquipped === "") ||
                     (item.id === "none_glasses" && currentEquipped === "");
 
@@ -293,28 +282,19 @@
                     statusBtnHtml = `<div class="status-tag status-active">Aktiviert ✅</div>`;
                 } else if (isUnlocked) {
                     statusBtnHtml = `<div class="status-tag status-equip">Ausrüsten 🔄</div>`;
-                } else if (item.price === "epic") {
-                    statusBtnHtml = `<div class="status-tag status-epic">✨ Kiste ✨</div>`;
                 } else {
                     statusBtnHtml = `<div class="status-tag status-buy">🪙 ${item.price}</div>`;
                 }
 
-                // Fallback falls die SVG-Datei noch nicht im Ordner liegt, wird ein Platzhalter-Emoji gezeigt
-                let previewElement = item.file !== "" ?
-                    `<img class="item-preview-img" src="${item.file}" onerror="this.onerror=null; this.src='https://placehold.co/100x100/1e293b/white?text=SVG';">` :
-                    `<div style='font-size:2.5rem; margin-bottom:8px;'>❌</div>`;
-
                 card.innerHTML = `
-                ${previewElement}
+                <div class="item-emoji">${item.emoji || "❌"}</div>
                 <div class="item-label">${item.label}</div>
                 ${statusBtnHtml}
             `;
 
                 card.onclick = () => {
                     if (isUnlocked) {
-                        equip(itemType, item.file);
-                    } else if (item.price === "epic") {
-                        alert("Dieses epische Item gibt es nur aus den Lernschatzkisten! 🎁");
+                        equip(itemType, item.emoji);
                     } else {
                         buy(itemType, item);
                     }
@@ -330,8 +310,8 @@
                 if (type === 'hat') { currentPlayer.unlockedHats.push(item.id); }
                 else { currentPlayer.unlockedGlasses.push(item.id); }
 
-                if (!currentPlayer.avatar) currentPlayer.avatar = { base: "bilder/avatar/basis.svg", hat: "", glasses: "" };
-                currentPlayer.avatar[type] = item.file;
+                if (!currentPlayer.avatar) currentPlayer.avatar = { base: "🧑", hat: "", glasses: "" };
+                currentPlayer.avatar[type] = item.emoji;
 
                 db.ref("players/" + playerName.toLowerCase()).set(currentPlayer, () => {
                     confetti({ particleCount: 30, spread: 40 });
@@ -341,9 +321,9 @@
             }
         }
 
-        function equip(type, file) {
-            if (!currentPlayer.avatar) currentPlayer.avatar = { base: "bilder/avatar/basis.svg", hat: "", glasses: "" };
-            currentPlayer.avatar[type] = file;
+        function equip(type, emoji) {
+            if (!currentPlayer.avatar) currentPlayer.avatar = { base: "🧑", hat: "", glasses: "" };
+            currentPlayer.avatar[type] = emoji;
             db.ref("players/" + playerName.toLowerCase()).set(currentPlayer);
         }
     </script>
